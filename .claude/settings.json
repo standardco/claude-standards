@@ -1,0 +1,19 @@
+{
+  "_comment": "Default Claude Code settings for Standard Co. projects. Override at project level in .claude/settings.json. Non-secret values only.",
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(docker:*)",
+      "Bash(make:*)"
+    ],
+    "deny": [
+      "Bash(curl:* --data *)",
+      "Bash(wget:*)"
+    ]
+  },
+  "env": {
+    "CLAUDE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  }
+}

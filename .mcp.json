@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json.schemastore.org/mcp.json",
+  "_comment": "Shared MCP server definitions for Standard Co. Owner: <OWNER_NAME>. New entries require a PR.",
+  "mcpServers": {
+    "postgres": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "<POSTGRES_CONNECTION_STRING>"],
+      "_comment": "Primary Postgres instance. Connection string injected at runtime via 1Password CLI."
+    },
+    "mysql": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-server-mysql", "--host", "<MYSQL_HOST>", "--user", "<MYSQL_USER>", "--password", "<MYSQL_PASSWORD>", "--database", "<MYSQL_DATABASE>"],
+      "_comment": "MySQL instance. Credentials from AWS Secrets Manager."
+    },
+    "sqlserver": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-server-mssql"],
+      "env": {
+        "MSSQL_HOST": "<SQLSERVER_HOST>",
+        "MSSQL_USER": "<SQLSERVER_USER>",
+        "MSSQL_PASSWORD": "<SQLSERVER_PASSWORD>",
+        "MSSQL_DATABASE": "<SQLSERVER_DATABASE>"
+      },
+      "_comment": "SQL Server instance. Credentials from AWS Secrets Manager."
+    },
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "<GITHUB_PAT>"
+      },
+      "_comment": "Official GitHub MCP. Token scoped to repo + PR read/write. Stored in 1Password."
+    },
+    "notion": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@notionhq/notion-mcp-server"],
+      "env": {
+        "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer <NOTION_API_KEY>\", \"Notion-Version\": \"2022-06-28\"}"
+      },
+      "_comment": "Official Notion MCP. API key from 1Password."
+    },
+    "slack": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-slack"],
+      "env": {
+        "SLACK_BOT_TOKEN": "<SLACK_BOT_TOKEN>",
+        "SLACK_TEAM_ID": "<SLACK_TEAM_ID>"
+      },
+      "_comment": "Official Slack MCP. Bot token scoped to channels:read, chat:write. Stored in 1Password."
+    },
+    "linear": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "linear-mcp-server"],
+      "env": {
+        "LINEAR_API_KEY": "<LINEAR_API_KEY>"
+      },
+      "_comment": "Linear issue tracking. API key from 1Password."
+    },
+    "helpscout": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "<HELPSCOUT_MCP_PACKAGE>"],
+      "env": {
+        "HELPSCOUT_APP_ID": "<HELPSCOUT_APP_ID>",
+        "HELPSCOUT_APP_SECRET": "<HELPSCOUT_APP_SECRET>"
+      },
+      "_comment": "Helpscout support inbox. Credentials from AWS Secrets Manager. Replace package name when vendor ships official MCP."
+    },
+    "staging-webhooks": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "<INTERNAL_STAGING_MCP_PACKAGE>"],
+      "env": {
+        "STAGING_BASE_URL": "<STAGING_BASE_URL>",
+        "STAGING_API_KEY": "<STAGING_API_KEY>"
+      },
+      "_comment": "Internal staging + webhook inspection server. Maintained by platform team."
+    },
+    "ops": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "<INTERNAL_OPS_MCP_PACKAGE>"],
+      "env": {
+        "OPS_BASE_URL": "<OPS_BASE_URL>",
+        "OPS_API_KEY": "<OPS_API_KEY>"
+      },
+      "_comment": "Internal ops tooling. Maintained by platform team."
+    }
+  }
+}

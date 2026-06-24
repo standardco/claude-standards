@@ -69,6 +69,25 @@ Key files:
 
 **Synthetic test data:** Generated with `<TOOL>`. Seed datasets at `<PATH>`.
 
+## Skill Configuration
+
+<!-- Provide project-specific context for shared skills from claude-standards. -->
+<!-- Skills check this section for defaults before prompting the user. -->
+<!-- Only include skills your project uses — remove the rest. -->
+
+### sprint-recap
+- **Sprint board:** <NOTION_SPRINT_BOARD_URL>
+- **Recap page:** <NOTION_RECAP_PAGE_URL>
+- **Staging branch:** `staging`
+- **Production branch:** `main`
+- **Staging URL:** <STAGING_URL>
+- **Task ID prefix:** `<PREFIX>-`
+
+### user-docs
+- **Output path:** `docs/user-guide.md`
+- **Audience:** <TARGET_AUDIENCE>
+- **Notion page:** <NOTION_DOCS_PAGE_URL>
+
 ## Conventions
 
 <!-- Add project-specific rules the style-enforcer should know about. -->

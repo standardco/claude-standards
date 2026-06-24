@@ -87,7 +87,36 @@ Adjust the `permissions` block for your project's needs. Common additions:
 
 ---
 
-## Step 5 — Set up pre-commit secret scanning
+## Step 5 — Configure skills for your project
+
+Skills in `claude-standards` are generic — they define the workflow but don't know your project's URLs, branch names, or Notion page IDs. Each project provides this context in a `## Skill Configuration` section in its `CLAUDE.md`.
+
+Add this section to your project's `CLAUDE.md`:
+
+```markdown
+## Skill Configuration
+
+### sprint-recap
+- **Sprint board:** https://www.notion.so/your-org/sprint-board-id
+- **Recap page:** https://www.notion.so/your-org/recap-page-id
+- **Staging branch:** `staging`
+- **Production branch:** `main`
+- **Staging URL:** https://your-app-staging.example.com
+- **Task ID prefix:** `PROJ-`
+
+### user-docs
+- **Output path:** `docs/user-guide.md`
+- **Audience:** end users (non-technical)
+- **Notion page:** https://www.notion.so/your-org/docs-page-id
+```
+
+Skills check this section first for defaults before prompting the user. Only include entries for skills your project uses — omit the rest.
+
+If your project needs to **override a skill's behavior** (not just its inputs), copy the skill's `SKILL.md` into your project's `.claude/skills/` directory and modify it there. The project-local copy takes precedence.
+
+---
+
+## Step 6 — Set up pre-commit secret scanning
 
 ```bash
 brew install gitleaks pre-commit
@@ -108,7 +137,7 @@ This must be done before the first commit that could contain credentials.
 
 ---
 
-## Step 6 — Document your de-identification process
+## Step 7 — Document your de-identification process
 
 Add a `## De-identification` section to your project's `CLAUDE.md` following the template in [`docs/data-privacy.md`](data-privacy.md). Minimum required:
 
@@ -118,7 +147,7 @@ Add a `## De-identification` section to your project's `CLAUDE.md` following the
 
 ---
 
-## Step 7 — Swap placeholders
+## Step 8 — Swap placeholders
 
 Search your project for `<PLACEHOLDER>` strings and replace them:
 
@@ -146,6 +175,7 @@ When `claude-standards` is updated:
 
 - [ ] Project `CLAUDE.md` imports or copies base `CLAUDE.md`
 - [ ] Project `CLAUDE.md` has a `## De-identification` section
+- [ ] Project `CLAUDE.md` has a `## Skill Configuration` section (if using skills)
 - [ ] `.mcp.json` copied, unused servers removed, placeholders replaced
 - [ ] `.claude/agents/` copied
 - [ ] `.claude/settings.json` copied and adjusted

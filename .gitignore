@@ -1,0 +1,20 @@
+# Environment and secrets
+.env.local
+.env.1password
+.env*.local
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx

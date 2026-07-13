@@ -37,4 +37,4 @@ One person owns `.mcp.json`. New MCP entries require a PR with a brief justifica
 
 The repo wins. Don't sync it back to slides or wikis — update here and let downstream sources pull from it.
 
-**Owner:** `<OWNER_NAME>` — `<OWNER_EMAIL>`
+**Owner:** Standard Code LLC — developer@standardco.de

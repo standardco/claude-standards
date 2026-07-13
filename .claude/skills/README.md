@@ -35,7 +35,7 @@ Gathers task cards from a Notion sprint board, correlates with git branches and 
 - Recap page Notion URL or ID
 - Staging and production branch names
 - Staging environment URL
-- Task ID prefix (e.g. `ESPEN-`, `EDU-`)
+- Task ID prefix (e.g. `PROJ-`, `EDU-`)
 
 ### user-docs
 

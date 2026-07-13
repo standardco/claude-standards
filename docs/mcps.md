@@ -47,24 +47,6 @@
 - **Auth:** API key from 1Password
 - **Use:** Issue creation, status updates, sprint queries from Claude workflows
 
-### Helpscout
-- **Package:** `<HELPSCOUT_MCP_PACKAGE>` (in-house until vendor ships official)
-- **Auth:** App ID + secret from AWS Secrets Manager
-- **Use:** Support ticket lookup and triage
-- **Note:** Deprecate this wrapper when Helpscout ships an official MCP.
-
-### Staging / webhooks
-- **Package:** `<INTERNAL_STAGING_MCP_PACKAGE>` (internal)
-- **Auth:** API key from AWS Secrets Manager
-- **Use:** Webhook inspection, staging environment queries, integration testing
-- **Owner:** Platform team
-
-### Ops
-- **Package:** `<INTERNAL_OPS_MCP_PACKAGE>` (internal)
-- **Auth:** API key from AWS Secrets Manager
-- **Use:** Internal operations tooling
-- **Owner:** Platform team
-
 ---
 
 ## Adding a new MCP

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/mcp.json",
-  "_comment": "Shared MCP server definitions for Standard Co. Owner: <OWNER_NAME>. New entries require a PR.",
+  "_comment": "Shared MCP server definitions for Standard Co. Owner: developer@standardco.de. New entries require a PR.",
   "mcpServers": {
     "postgres": {
       "type": "stdio",
@@ -62,36 +62,6 @@
         "LINEAR_API_KEY": "<LINEAR_API_KEY>"
       },
       "_comment": "Linear issue tracking. API key from 1Password."
-    },
-    "helpscout": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "<HELPSCOUT_MCP_PACKAGE>"],
-      "env": {
-        "HELPSCOUT_APP_ID": "<HELPSCOUT_APP_ID>",
-        "HELPSCOUT_APP_SECRET": "<HELPSCOUT_APP_SECRET>"
-      },
-      "_comment": "Helpscout support inbox. Credentials from AWS Secrets Manager. Replace package name when vendor ships official MCP."
-    },
-    "staging-webhooks": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "<INTERNAL_STAGING_MCP_PACKAGE>"],
-      "env": {
-        "STAGING_BASE_URL": "<STAGING_BASE_URL>",
-        "STAGING_API_KEY": "<STAGING_API_KEY>"
-      },
-      "_comment": "Internal staging + webhook inspection server. Maintained by platform team."
-    },
-    "ops": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "<INTERNAL_OPS_MCP_PACKAGE>"],
-      "env": {
-        "OPS_BASE_URL": "<OPS_BASE_URL>",
-        "OPS_API_KEY": "<OPS_API_KEY>"
-      },
-      "_comment": "Internal ops tooling. Maintained by platform team."
     }
   }
 }

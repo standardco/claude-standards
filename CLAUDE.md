@@ -77,6 +77,12 @@ Always review auto-mode output before merging. Auto-mode does not override the p
 
 ---
 
+## Formatting rules
+
+- When composing emails or messages for me to copy-paste, use plain text without markdown blockquote formatting.
+
+---
+
 ## Out of scope (not yet)
 
 These workflows exist but have no repo artifact yet:

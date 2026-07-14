@@ -79,7 +79,7 @@ Always review auto-mode output before merging. Auto-mode does not override the p
 
 ## Formatting rules
 
-- When composing emails or messages for me to copy-paste, use plain text without markdown blockquote formatting.
+- When composing emails or messages for me to copy-paste, use plain text without markdown blockquote formatting. Use `pbcopy` to place the text directly into the clipboard instead of displaying it in the terminal.
 
 ---
 

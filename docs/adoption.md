@@ -147,7 +147,31 @@ Add a `## De-identification` section to your project's `CLAUDE.md` following the
 
 ---
 
-## Step 8 — Swap placeholders
+## Step 8 — Audit existing secrets in git history
+
+Before proceeding, check whether the repo already has secrets committed — even if they've been removed from the working tree, they persist in git history.
+
+```bash
+# Working tree only — catches secrets that are still present in checked-out files
+grep -rn 'AWS_SECRET\|PRIVATE_KEY\|api_key\|password\s*=' .env* config/ 2>/dev/null
+
+# Full history — catches secrets that were committed and later deleted
+gitleaks detect --source . --verbose
+```
+
+Run both. The grep sees only the current checkout, so a clean result from it says nothing about history — which is the case this step exists to catch. If `gitleaks` isn't installed, install it rather than skipping; the working-tree scan is not a substitute.
+
+If secrets are found:
+1. **Rotate immediately** — assume they've been compromised
+2. **Remove from git history** using `git filter-repo` or BFG Repo-Cleaner
+3. **Force-push** and notify the team to re-clone
+4. Move credentials to AWS Secrets Manager / 1Password per the [secrets runbook](secrets.md)
+
+Run this on any repo created before it adopted these standards — automated scanning may not have been wired up from the first commit.
+
+---
+
+## Step 9 — Swap placeholders
 
 Search your project for `<PLACEHOLDER>` strings and replace them:
 
@@ -156,6 +180,18 @@ grep -r '<[A-Z_]*>' . --include="*.json" --include="*.md"
 ```
 
 Do not commit files that still contain unresolved placeholders (except in this template repo itself).
+
+---
+
+## Step 10 — Run a baseline security audit (recommended)
+
+If the project has existing code, run a security audit before starting new work:
+
+```
+/security-audit full
+```
+
+This surfaces any pre-existing vulnerabilities and gives the team a prioritized fix list. See [`.claude/skills/security-audit/SKILL.md`](../.claude/skills/security-audit/SKILL.md) for details.
 
 ---
 
@@ -182,3 +218,5 @@ When `claude-standards` is updated:
 - [ ] Pre-commit secret scanning installed and tested
 - [ ] No `<PLACEHOLDER>` strings remaining in committed files
 - [ ] No secrets in `.env`, code, or comments
+- [ ] Existing git history audited for leaked secrets (Step 8)
+- [ ] Baseline security audit run on existing code (Step 10, recommended)

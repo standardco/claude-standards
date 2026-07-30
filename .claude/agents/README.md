@@ -17,6 +17,10 @@ Run bug-hunter, security-auditor, and style-enforcer in parallel on the diff in 
 Consolidate findings before presenting them to me.
 ```
 
+## Reuse before adding
+
+`security-auditor` is also the engine behind `/security-audit`, which runs it in five parallel domain-scoped passes. When you need broader security coverage, add patterns to `security-auditor.md` — don't define parallel agents inside a skill. One checklist, one file, no drift.
+
 ## Adding a new agent
 
 1. Create a markdown file here with YAML front matter (`name`, `description`, `tools`).

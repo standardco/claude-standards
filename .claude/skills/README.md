@@ -23,6 +23,7 @@ See [`docs/adoption.md`](../../docs/adoption.md) for how to set up the `## Skill
 |-------|---------|-------------|
 | `/sprint-recap` | "generate a sprint recap" | Cross-references Notion sprint board with git history, writes recap to Notion, creates a GitHub PR with release notes |
 | `/user-docs` | "create user documentation" | Reads views, controllers, and routes to generate end-user feature guides with screenshot placeholders |
+| `/security-audit` | "run a security audit" | Runs `security-auditor` in five parallel scoped passes, consolidates findings into a ranked report with proposed fixes |
 
 ### sprint-recap
 
@@ -36,6 +37,18 @@ Gathers task cards from a Notion sprint board, correlates with git branches and 
 - Staging and production branch names
 - Staging environment URL
 - Task ID prefix (e.g. `PROJ-`, `EDU-`)
+
+### security-audit
+
+Runs the `security-auditor` agent five times in parallel, each pass scoped to one domain (SQL injection, auth/access control, XSS/CSRF, input processing, config/secrets), then consolidates and deduplicates findings into a severity-ranked report. Read-only by default; creates a branch with fixes and a PR only when asked.
+
+The domain list lives here; the vulnerability checklist lives in [`.claude/agents/security-auditor.md`](../agents/security-auditor.md). Add new patterns to the agent, not to this skill.
+
+**Usage:** `/security-audit [full | changed-files-only]`
+
+**Project context needed** (in `CLAUDE.md` → `## Skill Configuration`):
+- Framework (auto-detected if not specified)
+- Excluded paths (optional)
 
 ### user-docs
 

@@ -3,7 +3,7 @@ name: security-audit
 description: Run a comprehensive security assessment across the codebase using parallel scoped passes of the security-auditor agent, consolidate findings, rank by severity, and propose fixes
 when_to_use: Use when the user asks for a security audit, vulnerability assessment, or security review of the codebase
 argument-hint: "[scope: full | changed-files-only]"
-allowed-tools: Bash(git log *) Bash(git diff *) Bash(git branch *) Bash(git checkout *) Bash(git add *) Bash(git commit *) Bash(gh pr *) Grep Read Glob Edit Write Task
+allowed-tools: Bash(git log *) Bash(git diff *) Bash(git branch *) Bash(git checkout -b *) Bash(git switch -c *) Bash(git add *) Bash(git commit *) Bash(gh pr *) Grep Read Glob Edit Write Task
 ---
 
 # Security Audit

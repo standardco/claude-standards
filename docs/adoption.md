@@ -152,12 +152,14 @@ Add a `## De-identification` section to your project's `CLAUDE.md` following the
 Before proceeding, check whether the repo already has secrets committed — even if they've been removed from the working tree, they persist in git history.
 
 ```bash
-# Quick scan for common secret patterns in tracked files
-grep -rn 'AWS_SECRET\|PRIVATE_KEY\|api_key\|password\s*=' .env* config/ --include="*.yml" --include="*.env" --include="*.rb" 2>/dev/null
+# Working tree only — catches secrets that are still present in checked-out files
+grep -rn 'AWS_SECRET\|PRIVATE_KEY\|api_key\|password\s*=' .env* config/ 2>/dev/null
 
-# If gitleaks is installed, scan the full history
+# Full history — catches secrets that were committed and later deleted
 gitleaks detect --source . --verbose
 ```
+
+Run both. The grep sees only the current checkout, so a clean result from it says nothing about history — which is the case this step exists to catch. If `gitleaks` isn't installed, install it rather than skipping; the working-tree scan is not a substitute.
 
 If secrets are found:
 1. **Rotate immediately** — assume they've been compromised

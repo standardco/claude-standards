@@ -88,6 +88,12 @@ Key files:
 - **Audience:** <TARGET_AUDIENCE>
 - **Notion page:** <NOTION_DOCS_PAGE_URL>
 
+### end-of-day
+- **Handoff note path:** `~/Documents/<PROJECT>-handoff-<date>.md`
+- **Baseline command:** `<TEST_COMMAND>` — known good: `<N examples, M failures>`
+- **Ephemeral resources:** <e.g. local test database on port NNNN, background worker>
+- **Commit authorisation:** ask before committing (default) | pre-approved
+
 ## Conventions
 
 <!-- Add project-specific rules the style-enforcer should know about. -->

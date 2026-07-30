@@ -9,7 +9,7 @@
       "Bash(make:*)"
     ],
     "deny": [
-      "Bash(curl:* --data *)",
+      "Bash(curl:*)",
       "Bash(wget:*)"
     ]
   },

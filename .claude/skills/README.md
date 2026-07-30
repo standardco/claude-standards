@@ -24,6 +24,7 @@ See [`docs/adoption.md`](../../docs/adoption.md) for how to set up the `## Skill
 | `/sprint-recap` | "generate a sprint recap" | Cross-references Notion sprint board with git history, writes recap to Notion, creates a GitHub PR with release notes |
 | `/user-docs` | "create user documentation" | Reads views, controllers, and routes to generate end-user feature guides with screenshot placeholders |
 | `/security-audit` | "run a security audit" | Runs `security-auditor` in five parallel scoped passes, consolidates findings into a ranked report with proposed fixes |
+| `/end-of-day` | "clocking out", "wrapping up for the day" | Sweeps for uncommitted and ephemeral state, writes a durable handoff note outside the repo, names tomorrow's first action |
 
 ### sprint-recap
 
@@ -60,3 +61,17 @@ Reads the actual codebase to produce accurate user documentation — every field
 - Output path (defaults to `docs/user-guide.md`)
 - Target audience (admin users, end users, API consumers)
 - Notion page URL (optional, for writing docs directly to Notion)
+
+### end-of-day
+
+Closes out a working session so tomorrow starts from a known state. Handles the three things that get lost overnight: uncommitted work in the repo, ephemeral state outside it (temp directories, hand-started services, exported env vars), and the reasoning behind non-obvious decisions.
+
+Separates intentional changes from incidental churn — lockfile platform lines, test-runner state files, regenerated schema dumps — so nothing pollutes a diff. **Proposes commits rather than making them**; housekeeping is the worst moment for an unreviewed commit. Writes the handoff note outside the repo so it can't be swept into a `git add -A`, and prefers making fragile setup durable over documenting how to rebuild it.
+
+**Usage:** `/end-of-day [optional extra context]`
+
+**Project context needed** (in `CLAUDE.md` → `## Skill Configuration`):
+- Handoff note path (defaults to `~/Documents/<project>-handoff-<date>.md`)
+- Baseline verification command and its known-good result
+- Known ephemeral resources (local database, queue, background workers)
+- Whether committing/pushing is pre-authorised (defaults to no — it asks)

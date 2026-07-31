@@ -25,6 +25,7 @@ See [`docs/adoption.md`](../../docs/adoption.md) for how to set up the `## Skill
 | `/user-docs` | "create user documentation" | Reads views, controllers, and routes to generate end-user feature guides with screenshot placeholders |
 | `/security-audit` | "run a security audit" | Runs `security-auditor` in five parallel scoped passes, consolidates findings into a ranked report with proposed fixes |
 | `/end-of-day` | "clocking out", "wrapping up for the day" | Sweeps for uncommitted and ephemeral state, writes a durable handoff note outside the repo, names tomorrow's first action |
+| `/handoff` | "notes for the other session" | Summarizes this session's work as a briefing for a coupled project's Claude session and copies it to the clipboard |
 
 ### sprint-recap
 
@@ -75,3 +76,18 @@ Separates intentional changes from incidental churn — lockfile platform lines,
 - Baseline verification command and its known-good result
 - Known ephemeral resources (local database, queue, background workers)
 - Whether committing/pushing is pre-authorised (defaults to no — it asks)
+
+### handoff
+
+Bridges two tightly coupled projects running in separate Claude Code sessions — a service and the app that calls it. Summarizes what the current session built, changed, fixed, or found, and copies it to the clipboard for pasting into the other session.
+
+Written **for the other Claude session, not for a human**: exact endpoint paths, parameter names and types, response bodies, and error strings, so the reader can act without follow-up questions it has no way to ask. Verifies status against git and `gh` rather than recollection, because describing local work as deployed is the failure mode that costs the other project a debugging session. Filters to what's actionable, and scrubs PII, credentials, and internal hostnames before anything reaches the clipboard.
+
+Distinct from `/end-of-day`: that one writes a durable note for tomorrow's human in *this* project; this one writes a transient briefing for *another* project's session, now.
+
+**Usage:** `/handoff [target project]` — the target is optional when the context makes it obvious.
+
+**Project context needed** (in `CLAUDE.md` → `## Skill Configuration`):
+- Paired projects and their direction (producer or consumer)
+- Deployment URLs per environment
+- Clipboard command if not macOS `pbcopy`

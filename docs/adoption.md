@@ -108,6 +108,11 @@ Add this section to your project's `CLAUDE.md`:
 - **Output path:** `docs/user-guide.md`
 - **Audience:** end users (non-technical)
 - **Notion page:** https://www.notion.so/your-org/docs-page-id
+
+### handoff
+- **Paired project:** `your-other-repo` — this project is the producer
+- **Deployment URLs:** production https://api.example.com, staging https://api-staging.example.com
+- **Clipboard command:** `pbcopy`
 ```
 
 Skills check this section first for defaults before prompting the user. Only include entries for skills your project uses — omit the rest.

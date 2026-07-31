@@ -94,6 +94,11 @@ Key files:
 - **Ephemeral resources:** <e.g. local test database on port NNNN, background worker>
 - **Commit authorisation:** ask before committing (default) | pre-approved
 
+### handoff
+- **Paired project:** `<OTHER_PROJECT>` — this project is the <producer | consumer>
+- **Deployment URLs:** production `<PROD_URL>`, staging `<STAGING_URL>`
+- **Clipboard command:** `pbcopy` (macOS default) | `xclip -selection clipboard` | `wl-copy`
+
 ## Conventions
 
 <!-- Add project-specific rules the style-enforcer should know about. -->

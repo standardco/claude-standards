@@ -75,6 +75,15 @@ So verification moves to **Step 6**, in a fresh session. Do not attempt it here,
 
 `/memory` will not help either — it's a picker for editing memory files, not a list of what loaded. Seeing the import line in `CLAUDE.md` only proves the line exists, not that the path resolved.
 
+**Warn them about the trust prompt now**, before they see it. If the import points outside the project directory — which the shared-clone layout requires — Claude Code asks on the *next* session start:
+
+> **Allow external CLAUDE.md file imports?**
+> This project's CLAUDE.md imports files outside the current working directory. Never allow this for third-party repositories.
+
+They must answer **yes**. It's their own standards repo at a path they control, which is not the case the warning is aimed at. Answer no and the base rules never load — no privacy policy, no secrets policy — while everything still looks configured. That is the silent-failure state, reachable by being cautious.
+
+A submodule inside the project triggers no prompt, because nothing is outside the working directory.
+
 ## Step 4 — Install the skills
 
 **The import does not bring skills.** It inlines instruction text only; skills are discovered from directories. Wiring the import and then typing `/sprint-recap` does nothing, which reads as a broken repo.
@@ -117,7 +126,11 @@ It will pick up where this left off, ask for the values it can't read from the r
 
 **This is the only step that cannot happen in the session doing the setup**, for the reasons in Step 3. It needs a session that started *after* `CLAUDE.md` existed and has never read the base file.
 
-Have the user quit and reopen Claude Code in the project directory, then ask:
+Have the user quit and reopen Claude Code in the project directory.
+
+**If the import points outside the project, the trust prompt appears first** — *"Allow external CLAUDE.md file imports?"* Answer **yes**. Answering no is not a neutral choice: the base rules never load, and nothing later will indicate that.
+
+Then ask:
 
 > What does my CLAUDE.md say about when to use MCP instead of raw HTTP?
 

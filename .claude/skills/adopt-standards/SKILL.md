@@ -84,6 +84,8 @@ Two reasons, both absolute:
 
 So: write the import, state plainly that it is **unverified**, and defer the check to step 10. Never report the import as working on the strength of your own answer.
 
+**If the import points outside the project directory, warn them about the trust prompt before they meet it.** Claude Code asks on the next session start — *"Allow external CLAUDE.md file imports? … Never allow this for third-party repositories."* They must answer **yes**; it's their own standards repo at a controlled path, not the third-party case the warning targets. Answering no leaves the base rules unloaded while the project still looks configured, and nothing later flags it. A submodule inside the project raises no prompt at all.
+
 **Stop here if it didn't resolve.** Everything downstream assumes the base rules are live.
 
 ### 4. Install skills
@@ -230,7 +232,7 @@ Everything else applies, and the secret-scanning checks matter **more** here, no
 
 Imports resolve at session start, and a session that ran the setup has read the base file directly. Both make self-verification impossible: a session can create a broken import and still answer questions about the base rules perfectly.
 
-Tell the user to quit, reopen Claude Code in the project directory, and ask:
+Tell the user to quit and reopen Claude Code in the project directory. If the import is external, the *"Allow external CLAUDE.md file imports?"* prompt appears on start — they answer **yes**, or nothing loads. Then ask:
 
 > What does my CLAUDE.md say about when to use MCP instead of raw HTTP?
 

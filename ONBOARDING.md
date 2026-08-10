@@ -27,7 +27,7 @@ Use their answer as `<skills-dir>` for the rest of this guide.
 
 ## Step 1 — Secret scanning, first
 
-Before anything creates credential-shaped placeholders in version-controlled files. The base `CLAUDE.md` says wire this at `git init` time, not later.
+Before writing anything. Mostly this is about what's already in the repo — an existing project may carry credentials in its history from long before today, and every later step assumes it's safe to commit to. The base `CLAUDE.md` says wire this at `git init` time, not later.
 
 ```bash
 brew install gitleaks pre-commit     # or the platform equivalent
@@ -120,7 +120,7 @@ These are copies and do not track the source. `/adopt-standards resync` updates 
 
 ## Step 5 — Hand off to the skill
 
-The rest — review agents, settings, `## Skill Configuration`, `.mcp.json` and its credential hazards, de-identification, and the final verification pass — is maintained in the `/adopt-standards` skill you just installed.
+The rest — review agents, settings, `## Skill Configuration`, de-identification, and the final verification pass — is maintained in the `/adopt-standards` skill you just installed.
 
 Run it:
 

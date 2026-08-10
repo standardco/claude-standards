@@ -21,7 +21,6 @@ You don't need to read anything first, and you don't need to be at Standard Co. 
 |------|---------|
 | `CLAUDE.md` | Base instructions every project inherits |
 | `ONBOARDING.md` | Bootstrap for a developer setting this up for the first time |
-| `.mcp.json` | Shared MCP server definitions |
 | `.pre-commit-config.yaml` | Secret scanning — the hook this repo requires and runs on itself |
 | `.claude/settings.json` | Default Claude settings (non-secret) |
 | `.claude/agents/` | Parallel code-review subagents |
@@ -71,7 +70,7 @@ Adopting this repo doesn't soften these. Full detail in [`docs/data-privacy.md`]
 
 ## Ownership
 
-One person owns `.mcp.json`. New MCP entries require a PR with a brief justification comment. When a vendor ships an official MCP, the in-house wrapper gets deprecated in the same PR.
+This repo has an opinion on *when* to reach for an MCP, not on which servers you run — see [`docs/mcps.md`](docs/mcps.md). Server definitions are project-specific and live in each project's own `.mcp.json`, owned by one person there, with new entries added by PR.
 
 The repo wins. Don't sync it back to slides or wikis — update here and let downstream sources pull from it.
 

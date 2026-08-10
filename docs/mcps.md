@@ -1,70 +1,61 @@
-# MCP catalog
+# MCP guidance
+
+This repo has an opinion on **when** to reach for an MCP. It does not ship a server list.
+
+Server definitions are project-specific — which database, which host, which credential — and a shared template of them is worse than nothing: it duplicates connectors your Claude account may already provide, and every duplicate is a credential to store, rotate, and keep out of git. Adopting `claude-standards` no longer installs a `.mcp.json`. Add servers when a project actually needs one.
 
 ## Decision rules
 
 - **Default to MCP** for any tool used more than once by two or more devs.
 - If the vendor ships an official MCP, use it. Don't maintain a wrapper.
-- Skip MCP only when: it doesn't exist yet, one-shot dev inspection, or public API with no auth.
-- Reach for raw HTTP twice against the same service → that's a missing MCP. Add one.
-- MCP definitions live in `./.mcp.json` at project root. One owner per file. New entries need a PR.
+- Skip MCP only when: it doesn't exist yet, it's a one-shot dev inspection, or the API is public with no auth.
+- Reaching for raw HTTP twice against the same service is a missing MCP. Add one.
+- Server definitions live in `./.mcp.json` at the project root — team-shared and version-controlled, not in `.claude/`.
+- One owner per `.mcp.json`. New entries need a PR.
 
----
+## Check for a connector before wiring a server
 
-## Wired today
+Claude accounts can carry connectors for common SaaS tools — Notion, Slack, Linear, Google Drive, Atlassian and others — authenticated through the account rather than a token on your machine. Where one exists and covers what you need, **use it instead of a `.mcp.json` entry.** No credential to manage, nothing to rotate, nothing to leak.
 
-### Postgres
-- **Package:** `@modelcontextprotocol/server-postgres`
-- **Auth:** Connection string via 1Password at runtime
-- **Use:** Primary relational store for most services
+So, in order of preference:
 
-### MySQL
-- **Package:** `mcp-server-mysql`
-- **Auth:** Host/user/password from AWS Secrets Manager
-- **Use:** Legacy services and third-party integrations that require MySQL
+| Preference | Use for |
+|---|---|
+| **Account connector** | Vendor SaaS, where a connector exists and is authorised |
+| **`.mcp.json` server** | What connectors can't reach — databases, internal services, self-hosted tools |
+| **Raw HTTP** | One-shots and public unauthenticated APIs only |
 
-### SQL Server
-- **Package:** `mcp-server-mssql`
-- **Auth:** Host/credentials from AWS Secrets Manager
-- **Use:** <SQLSERVER_USE_CASE>
+Connectors are provisioned per account or per org, so confirm your teammates actually have the same ones before a project depends on one. If they don't, a `.mcp.json` entry is the portable answer.
 
-### GitHub
-- **Package:** `@modelcontextprotocol/server-github` (official)
-- **Auth:** PAT scoped to `repo` + PR read/write, stored in 1Password
-- **Use:** PR review, issue lookup, branch management from Claude workflows
+## Adding a server to a project
 
-### Notion
-- **Package:** `@notionhq/notion-mcp-server` (official)
-- **Auth:** Integration API key from 1Password
-- **Use:** Internal knowledge base, project docs, runbooks
+1. Check for an account connector first. If one covers it, stop here.
+2. Check whether the vendor ships an official MCP. Prefer it over a wrapper.
+3. Open a PR adding the definition to that project's `.mcp.json`.
+4. **Never commit a credential.** Reference an environment variable and inject at runtime — see [`secrets.md`](secrets.md) for the `op run` pattern.
+5. Tag the file's owner for review.
+6. If it needs a new kind of secret, document that in `secrets.md`.
 
-### Slack
-- **Package:** `@modelcontextprotocol/server-slack` (official)
-- **Auth:** Bot token (`channels:read`, `chat:write`) from 1Password
-- **Use:** Notifications, incident updates, Claude-triggered messages
+## Credentials in `.mcp.json`
 
-### Linear
-- **Package:** `linear-mcp-server`
-- **Auth:** API key from 1Password
-- **Use:** Issue creation, status updates, sprint queries from Claude workflows
+`.mcp.json` is version-controlled by design, so it must never hold a value. Reference the variable:
 
----
+```json
+"env": {
+  "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+}
+```
 
-## Adding a new MCP
+and launch with the value injected:
 
-1. Check whether the vendor has an official MCP first.
-2. Open a PR adding the server definition to `.mcp.json`.
-3. Add a row to this catalog with: package name, auth method, use case, owner.
-4. Tag `.mcp.json`'s designated owner for review.
-5. Document credential setup in `docs/secrets.md` if it requires a new secret type.
+```bash
+op run --env-file=.env.1password -- claude
+```
 
-## Deprecating an MCP
+`.env.1password` holds `op://` references rather than secrets, and is gitignored. Full runbook in [`secrets.md`](secrets.md).
 
-When a vendor ships an official MCP to replace an in-house wrapper:
+Literal `<PLACEHOLDER>` values are not a mechanism. They leave no working path, and the path of least resistance from there is pasting the real token in — which is how credentials end up committed.
 
-1. Add the official MCP entry to `.mcp.json`.
-2. Remove the in-house wrapper entry.
-3. Update this catalog.
-4. Notify teams in the relevant Slack channel.
-5. Remove the wrapper package from any `package.json` files.
+## Replacing a wrapper with an official MCP
 
-All in one PR.
+When a vendor ships an official server that replaces an in-house wrapper, do it in one PR: add the official entry, remove the wrapper, update any `package.json` that carried it, and tell the affected teams.

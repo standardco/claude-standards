@@ -34,7 +34,8 @@ See [`docs/secrets.md`](docs/secrets.md) for the full runbook.
 - Default to MCP for any tool used more than once by two or more devs.
 - If the vendor ships an official MCP (GitHub, Notion, Slack, Linear), use it instead of raw HTTP.
 - Skip MCP only when: it doesn't exist yet, it's a one-shot dev inspection, or the API is public and unauthenticated.
-- MCP server definitions live in `./.mcp.json` — team-shared and version-controlled. Not in `.claude/`.
+- Check for a Claude account connector before wiring a server — no credential to manage where one exists.
+- Where you do need a server, its definition lives in that project's `./.mcp.json` — team-shared and version-controlled, not in `.claude/`. This repo ships no server template.
 - If you find yourself reaching for raw HTTP twice against the same service, that's a signal to add an MCP.
 
 See [`docs/mcps.md`](docs/mcps.md) for the full catalog and rationale.

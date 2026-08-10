@@ -25,7 +25,6 @@ Adoption moves three different kinds of thing into your project, and they behave
 | Base instructions (`CLAUDE.md`) | **Imported** via `@path` | Yes, automatically — the import resolves at load time |
 | Skills (`.claude/skills/`) | **Copied** to `~/.claude/skills/` or the project | No — copies drift, use `resync` |
 | Review agents (`.claude/agents/`) | **Copied** to the project | No — copies drift, use `resync` |
-| MCP servers (`.mcp.json`) | **Copied**, then credentials wired | No — never auto-syncs, always manual |
 
 The consequence people trip on: **the `@import` does not bring skills.** It inlines instruction text. Skills are discovered from directories. Wiring the import and then typing `/sprint-recap` does nothing, and the natural conclusion is that the repo is broken.
 
@@ -96,9 +95,9 @@ If both exist, the project copy takes precedence. Either way it's a file copy, s
 
 ## Things worth knowing before you start
 
-**Secret scanning comes first, not last.** Setup writes credential-shaped placeholders into version-controlled files, so the protection has to exist before the values do. The base `CLAUDE.md` puts this at `git init` time. Also audit existing history — deleted secrets persist in old commits, and a clean working tree says nothing about that.
+**Secret scanning comes first, not last.** Chiefly to find what's already there: an existing repo may carry credentials in its history from long before it adopted anything, and every later step assumes the repo is safe to commit to. Audit history, not just the working tree — deleted secrets persist in old commits, and a clean checkout says nothing about that. The base `CLAUDE.md` puts this at `git init` time.
 
-**`.mcp.json` is where credentials leak.** Every server carries a bare `<GITHUB_PAT>`-style placeholder in an `env` block that accepts a literal string, and the file is version-controlled and team-shared by design. Credentials come from AWS Secrets Manager or 1Password and are injected at runtime — never written into the file. If you don't know how a value gets injected, stop and ask. See the [secrets runbook](secrets.md).
+**Adoption sets up no MCP servers.** This repo ships no `.mcp.json` template — which servers a project needs is project-specific, and a shared list duplicates connectors your Claude account may already provide, each duplicate being a credential to store and rotate. Add servers per project when you need them; see [`mcps.md`](mcps.md) for the decision rules and [`secrets.md`](secrets.md) for injecting credentials without committing them.
 
 **De-identification is required, not optional.** Every project `CLAUDE.md` needs a `## De-identification` section covering which fields are removed, which are transformed and how, and where synthetic test data comes from. Template in [`docs/data-privacy.md`](data-privacy.md). If you don't know the answer yet, stub it and flag it — a wrong process documented as correct is worse than an obvious gap.
 
@@ -108,7 +107,7 @@ If both exist, the project copy takes precedence. Either way it's a file copy, s
 
 **Skill Configuration is optional, and stubs are fine.** Every installed skill works whether or not it has an entry — an unconfigured skill just asks at runtime, which is usually the moment you actually know the answer. Setup writes the section with `<TODO>` markers rather than interviewing you about skills you may never run. Fill them in as you go.
 
-**Resolve every placeholder before committing.** Check with `git grep -nE '<[A-Z_]{2,}>' -- '*.json' '*.md'`. The exception is this repo itself — `.mcp.json`, `examples/`, and the docs here are templates, so unresolved placeholders are correct in `claude-standards` and nowhere else.
+**Resolve every placeholder before committing.** Check with `git grep -nE '<[A-Z_]{2,}>' -- '*.json' '*.md'`. The exception is this repo itself — `examples/` and the docs here are templates, so unresolved placeholders are correct in `claude-standards` and nowhere else.
 
 ## After adoption
 
@@ -127,4 +126,4 @@ This surfaces pre-existing vulnerabilities and gives the team a prioritized fix 
 - **Imported `CLAUDE.md`** — already current, nothing to do.
 - **Submodule** — `git submodule update --remote`.
 - **Copied files** — skills and agents are snapshots. `resync` diffs them against upstream and separates genuine upstream changes from your deliberate local modifications, so a customised skill doesn't get silently clobbered.
-- **`.mcp.json`** — never auto-syncs. When a new MCP is added to the base, the project owner pulls it in manually and wires the credentials.
+- **A project's own `.mcp.json`** — not managed by this repo, and never touched by `resync`.

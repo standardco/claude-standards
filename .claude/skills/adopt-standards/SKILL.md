@@ -28,8 +28,6 @@ Infer what you can, ask for the rest. Never guess at these:
 
 - **Where `claude-standards` lives** — submodule at `./claude-standards/`, or a shared clone elsewhere. Determines the import path.
 - **Notion URLs and task ID prefix** — unknowable from the repo. A guessed sprint board URL points a skill at the wrong workspace.
-- **How credentials are injected** — 1Password CLI or AWS SSM. If unclear, stop and ask. Never hardcode "for now".
-
 Branch names, stack, and test runner you can read from the repo. Do that rather than asking.
 
 ---
@@ -38,7 +36,7 @@ Branch names, stack, and test runner you can read from the repo. Do that rather 
 
 ### 1. Secret scanning, before anything else
 
-First deliberately. Later steps put credential-shaped placeholders into version-controlled files, and the moment those get real values an unprotected repo is one `git add -A` from a leak. The base `CLAUDE.md` says to wire this at `git init` time, not later — so do it before creating the files that carry the risk.
+First deliberately, before writing anything. The point is less about what this setup creates and more about what is already there: an existing repo may have credentials in its history from long before today, and everything downstream assumes the repo is safe to commit to. The base `CLAUDE.md` puts this at `git init` time, not later.
 
 ```bash
 cat > .pre-commit-config.yaml << 'EOF'
@@ -161,17 +159,13 @@ A stub is not a failure state. The skill prompts for anything missing the first 
 
 List the stubbed values in the hand-back summary (step 10) so nothing is silently left blank.
 
-### 8. MCP servers — the leak step
+### 8. MCP servers — don't
 
-```bash
-cp <standards>/.mcp.json ./.mcp.json
-```
+**Adoption does not create a `.mcp.json`, and does not ask about MCP servers.** `claude-standards` ships no server template. Which servers a project needs is project-specific, and a shared list duplicates connectors the user's Claude account may already provide — each duplicate being a credential to store, rotate, and keep out of git.
 
-Remove unused servers, then swap placeholders. **This is where credentials leak.** Every server carries a bare `<GITHUB_PAT>`-style placeholder in an `env` block that takes a literal string, and `.mcp.json` is version-controlled and team-shared by design.
+Skip this. If the user raises MCP, point them at [`docs/mcps.md`](../../../docs/mcps.md): check for an account connector first, use `.mcp.json` only for what connectors can't reach, and never commit a credential — reference `${VAR}` and inject with `op run` per [`docs/secrets.md`](../../../docs/secrets.md).
 
-Never write a real credential into it. Source of truth is AWS Secrets Manager and 1Password; values are injected at runtime via the 1Password CLI or AWS SSM. If you don't know how a given value is injected, stop and ask — see [`docs/secrets.md`](../../../docs/secrets.md).
-
-`.mcp.json` belongs at the project root, not in `.claude/`.
+Removing this step removes the only part of adoption that could leak a credential into version control, and the only one that blocks on an answer the user often doesn't have yet.
 
 ### 9. Document de-identification
 
@@ -206,7 +200,7 @@ Sort the differences into three buckets and treat them differently:
 - **Local modifications** — a deliberately customised project-local skill. Do **not** overwrite. Show the diff and let the user decide.
 - **Local-only files** — a project's own skills. Leave them alone.
 
-`.mcp.json` never auto-syncs. If new servers appeared upstream, name them and let the user pull them in with the right credential wiring.
+A project's own `.mcp.json`, if it has one, is not managed by this repo and is never touched by `resync`.
 
 If the project imports `CLAUDE.md` rather than copying it, base-rule changes are already live — say so rather than implying action is needed. If it copied, diff against the recorded commit SHA.
 
@@ -238,7 +232,7 @@ Three checks don't apply, and reporting them as failures is wrong:
 
 - **No import to verify.** The repo *is* the base; its `CLAUDE.md` loads directly.
 - **No `## De-identification` or `## Skill Configuration`.** Those are what adopting projects write. The base defines the requirement; it doesn't consume it, and it holds no project data.
-- **Placeholders are intentional.** `.mcp.json`, `examples/`, and the docs are templates. Unresolved `<PLACEHOLDER>` strings are correct here and nowhere else.
+- **Placeholders are intentional.** `examples/` and the docs are templates. Unresolved `<PLACEHOLDER>` strings are correct here and nowhere else.
 
 Everything else applies, and the secret-scanning checks matter **more** here, not less — this is the repo people clone as their starting point, so a gap propagates to every project downstream. Check them explicitly rather than waving them through as self-evidently fine.
 
@@ -268,15 +262,14 @@ Say what failed and what it means in practice — "the import didn't resolve, so
 - **Merge, never overwrite.** Existing `CLAUDE.md`, settings, and customised skills represent decisions someone made.
 - **Ask for what the repo can't tell you.** Notion URLs, task prefixes, credential injection. Read branch names and stack yourself.
 - **Ask about decisions, never about inventory.** A question the user has to answer once is fine — import path, install scope, MCP servers. A question that lists things from this repo and asks them to tick boxes is not a decision, it's data entry, and it gets longer every time `claude-standards` grows. Stub instead, and say what you stubbed.
-- **Stop at the credential step if unsure.** Every other step here is reversible. That one isn't.
+- **Stop rather than guess when a wrong answer is hard to undo.** Most steps here are reversible; anything touching credentials or history is not.
 - **Report gaps as gaps.** A stubbed de-identification section flagged out loud beats an invented one.
 
 ## What not to do
 
-- **Don't copy anything from `claude-standards` that isn't named in these steps.** Only `.claude/skills/`, `.claude/agents/`, `.mcp.json`, and the settings *content* transfer. Everything else at the repo root — `.gitignore`, `.pre-commit-config.yaml`, `.tool-versions`, `LICENSE`, `README.md`, `ONBOARDING.md`, `docs/`, `examples/` — belongs to the standards repo and is not a template. Where a file genuinely needs changing (`.gitignore`, `.pre-commit-config.yaml`), **write the specific lines** the project needs rather than copying ours over theirs.
+- **Don't copy anything from `claude-standards` that isn't named in these steps.** Only `.claude/skills/`, `.claude/agents/`, and the settings *content* transfer. Everything else at the repo root — `.gitignore`, `.pre-commit-config.yaml`, `.tool-versions`, `LICENSE`, `README.md`, `ONBOARDING.md`, `docs/`, `examples/` — belongs to the standards repo and is not a template. Where a file genuinely needs changing (`.gitignore`, `.pre-commit-config.yaml`), **write the specific lines** the project needs rather than copying ours over theirs.
 - **Don't attribute an unexpected file to this setup without checking.** Matching content is not evidence of copying — version managers and other developer tooling write files that look like ours. Ask before treating one as your artifact or as a project quirk.
 - Don't run end to end silently — several steps need the user's input
-- Don't hardcode a credential in `.mcp.json`, even temporarily
 - Don't overwrite a project-local skill during `resync` without showing the diff
 - Don't continue past a failed import verification
 - Don't invent a de-identification process, Notion URL, or task ID prefix

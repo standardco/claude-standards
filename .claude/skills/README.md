@@ -46,7 +46,7 @@ Gathers task cards from a Notion sprint board, correlates with git branches and 
 
 Sets up a project to inherit this repo — base instructions, review agents, and skills — and then **proves the standards are loaded** rather than assuming the files landed. Two parts of the setup fail silently: a `CLAUDE.md` import pointing at the wrong path, and skills that were never installed because the import doesn't carry them. Both leave a project looking configured with none of the rules in effect, which is worse than an obviously unconfigured one.
 
-Runs secret scanning *first*, before any step creates credential-shaped placeholders in version-controlled files. Merges rather than overwrites, since an existing `CLAUDE.md` or customised skill represents someone's decision. Stops at the `.mcp.json` credential step when injection is unclear instead of hardcoding a value "for now" — every other step is reversible and that one isn't.
+Runs secret scanning *first*, before any step writes files. Merges rather than overwrites, since an existing `CLAUDE.md` or customised skill represents someone's decision. Creates no `.mcp.json` and asks nothing about MCP servers — that step was the only one that could leak a credential into version control, and the only one that blocked on an answer the user often didn't have.
 
 Three modes: `adopt` (full setup), `resync` (pull upstream changes, showing local modifications rather than clobbering them), `verify` (read-only check that a setup still works).
 

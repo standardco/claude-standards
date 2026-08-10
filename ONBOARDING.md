@@ -66,17 +66,14 @@ If a `CLAUDE.md` already exists, insert above the existing content. Never overwr
 
 **Now verify, and stop if it fails.** An import pointing at a missing path produces no error, no warning, and no base rules — the developer will believe our privacy and secrets policies are in effect when nothing is loaded. That is the worst outcome of this whole setup.
 
-**Verify behaviourally, not by looking at files.** `/memory` will not tell you this — it's a picker for editing memory files, not a list of what loaded. Seeing the import line in `CLAUDE.md` only proves the line exists, not that the path resolved.
+**This session cannot verify its own work.** Two reasons, and both are absolute:
 
-Ask the session a question that **only the base rules can answer**, and that can't be guessed from the project:
+- `CLAUDE.md` was created *after* this session started. Imports resolve at session start, so there is nothing loaded here to check.
+- This session has read the base file with the `Read` tool in order to do the setup. It can answer questions about the base rules from that memory whether or not the import ever resolves.
 
-> What does my CLAUDE.md say about when to use MCP instead of raw HTTP?
+So verification moves to **Step 6**, in a fresh session. Do not attempt it here, and do not report the import as working. Write the import, tell the user it is unverified, and continue.
 
-A loaded session answers from the base rules: default to MCP for anything used more than once by two or more devs, use the vendor's official MCP where one exists, skip it only for one-shot inspections or public unauthenticated APIs. A session where the import failed has only the project's own `CLAUDE.md` — the import line and whatever is below it — so it will say it doesn't know, or start reading files to find out.
-
-"Where do secrets live?" works too, though it's guessable — a model may say 1Password from general knowledge. The MCP question is harder to fake.
-
-Do not continue until it resolves.
+`/memory` will not help either — it's a picker for editing memory files, not a list of what loaded. Seeing the import line in `CLAUDE.md` only proves the line exists, not that the path resolved.
 
 ## Step 4 — Install the skills
 
@@ -113,6 +110,24 @@ Run it:
 ```
 
 It will pick up where this left off, ask for the values it can't read from the repo, and finish with a verification checklist. Later, `/adopt-standards resync` pulls in upstream changes and `/adopt-standards verify` re-checks that everything is still actually in effect.
+
+---
+
+## Step 6 — Verify the import, in a fresh session
+
+**This is the only step that cannot happen in the session doing the setup**, for the reasons in Step 3. It needs a session that started *after* `CLAUDE.md` existed and has never read the base file.
+
+Have the user quit and reopen Claude Code in the project directory, then ask:
+
+> What does my CLAUDE.md say about when to use MCP instead of raw HTTP?
+
+**Resolved:** it answers from the base rules — default to MCP for anything used more than once by two or more devs, use the vendor's official MCP where one exists, skip it only for one-shot inspections or public unauthenticated APIs, and server definitions belong in `./.mcp.json` at the repo root.
+
+**Not resolved:** it says it doesn't know, or starts reading files to find out. The project has none of the base rules — no privacy policy, no secrets policy — despite looking configured. Fix the import path and check again.
+
+Two things that do *not* count as verification: asking the setup session (it read the base file already), and reading the import line back out of `CLAUDE.md` (that proves the line exists, not that it resolved).
+
+Relative imports pointing above the project root — `@../claude-standards/CLAUDE.md`, which the shared-clone layout requires — are the case most likely to fail. If the project uses one, this step is not optional.
 
 ---
 

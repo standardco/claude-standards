@@ -35,11 +35,13 @@ Both leave a project looking correctly configured with none of the standards in 
 
 **A `CLAUDE.md` import that doesn't resolve.** `@./claude-standards/CLAUDE.md` assumes the repo is at exactly that path. Point it somewhere else and you get no error, no warning, and no base rules — including the privacy and secrets policies.
 
-There is no file or command that reports what loaded. `/memory` is a picker for *editing* memory files, not a list of active instructions, and seeing the import line in `CLAUDE.md` only proves the line exists. **The check has to be behavioural** — ask your session something only the base rules can answer:
+There is no file or command that reports what loaded. `/memory` is a picker for *editing* memory files, not a list of active instructions, and seeing the import line in `CLAUDE.md` only proves the line exists. **The check has to be behavioural, and it has to run in a fresh session** — ask something only the base rules can answer:
 
 > What does my CLAUDE.md say about when to use MCP instead of raw HTTP?
 
-If it can't answer without going and reading files, the import didn't resolve. Relative imports pointing above the project root (`@../`) are the likeliest to fail.
+Fresh session matters for two reasons. Imports resolve at session start, so a session that just *created* `CLAUDE.md` has nothing loaded to check. And a session that performed the setup has read the base file directly, so it can answer correctly whether or not the import works. A setup session can produce a completely broken import and still pass its own test.
+
+If a fresh session can't answer without going and reading files, the import didn't resolve. Relative imports pointing above the project root (`@../`) are the likeliest to fail.
 
 **Skills that were never installed.** Covered above. Confirm a skill actually appears and runs.
 

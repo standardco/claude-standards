@@ -75,19 +75,14 @@ Add the import as the **first line** of the project's `CLAUDE.md`:
 
 If the project already has a `CLAUDE.md`, insert above the existing content. Never overwrite it.
 
-Then verify, because a bad path produces no error and no base rules.
+A bad path produces no error and no base rules — but **you cannot verify it from here.**
 
-**Verify behaviourally.** `/memory` does not show what loaded — it's a picker for editing memory files. Reading the import line back out of `CLAUDE.md` only proves the line exists, not that it resolved. The only real test is whether the rules are in effect.
+Two reasons, both absolute:
 
-Ask a question that **only the base rules can answer** and that isn't guessable from the project:
+- If you created or edited `CLAUDE.md` in this session, the import was not present when the session started, and imports resolve at session start. There is nothing loaded to check.
+- You read the base file with `Read` to do this setup. You can answer questions about the base rules from that, whether or not the import ever resolves. Any self-check is contaminated.
 
-> What does my CLAUDE.md say about when to use MCP instead of raw HTTP?
-
-Loaded: it answers from the base rules — MCP by default for anything used more than once by two or more devs, official vendor MCP where one exists, raw HTTP only for one-shots and public unauthenticated APIs. Not loaded: it says it doesn't know, or goes looking through files.
-
-Avoid "where do secrets live?" as the only check — a model may answer 1Password from general knowledge whether or not anything loaded.
-
-**Relative imports above the project root** (`@../claude-standards/CLAUDE.md`, used by the shared-clone option) are the case most likely to fail, and the one this check exists for. Run it before continuing.
+So: write the import, state plainly that it is **unverified**, and defer the check to step 10. Never report the import as working on the strength of your own answer.
 
 **Stop here if it didn't resolve.** Everything downstream assumes the base rules are live.
 
@@ -213,7 +208,7 @@ git remote -v | grep -q 'claude-standards' && echo "source repo"
 
 ### In an adopting project
 
-- [ ] The session answers "what does my CLAUDE.md say about when to use MCP instead of raw HTTP?" from the base rules — this is the import check, and it is behavioural. `/memory` does not show what loaded, and the import line being present in the file proves nothing about whether it resolved.
+- [ ] **Import check — requires a fresh session.** See below; do not run it in a session that performed the setup.
 - [ ] At least one skill appears and runs — invoking this skill is itself proof
 - [ ] `.claude/agents/` has all three reviewers
 - [ ] `pre-commit run --all-files` passes
@@ -230,6 +225,22 @@ Three checks don't apply, and reporting them as failures is wrong:
 - **Placeholders are intentional.** `.mcp.json`, `examples/`, and the docs are templates. Unresolved `<PLACEHOLDER>` strings are correct here and nowhere else.
 
 Everything else applies, and the secret-scanning checks matter **more** here, not less — this is the repo people clone as their starting point, so a gap propagates to every project downstream. Check them explicitly rather than waving them through as self-evidently fine.
+
+### The import check — fresh session only
+
+Imports resolve at session start, and a session that ran the setup has read the base file directly. Both make self-verification impossible: a session can create a broken import and still answer questions about the base rules perfectly.
+
+Tell the user to quit, reopen Claude Code in the project directory, and ask:
+
+> What does my CLAUDE.md say about when to use MCP instead of raw HTTP?
+
+**Resolved:** answers from the base rules — MCP by default for anything used more than once by two or more devs, official vendor MCP where one exists, raw HTTP only for one-shots and public unauthenticated APIs, `./.mcp.json` at the repo root.
+
+**Not resolved:** says it doesn't know, or goes reading files. The project has none of the base rules despite looking configured.
+
+Not verification: asking the setup session, reading the import line back out of `CLAUDE.md`, or `/memory` — which is a picker for editing memory files, not a list of what loaded. Avoid "where do secrets live?" as the question; a model may answer 1Password from general knowledge regardless.
+
+Relative imports above the project root (`@../`, required by the shared-clone layout) are the likeliest to fail and the reason this check exists.
 
 ### Reporting
 

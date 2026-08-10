@@ -273,6 +273,8 @@ Say what failed and what it means in practice — "the import didn't resolve, so
 
 ## What not to do
 
+- **Don't copy anything from `claude-standards` that isn't named in these steps.** Only `.claude/skills/`, `.claude/agents/`, `.mcp.json`, and the settings *content* transfer. Everything else at the repo root — `.tool-versions`, `.gitignore`, `.pre-commit-config.yaml`, `LICENSE`, `README.md`, `ONBOARDING.md`, `docs/`, `examples/` — belongs to the standards repo itself and is not a template. Copying `.tool-versions` puts this repo's Node pin into someone's Python project. Where a file needs changing (`.gitignore`, `.pre-commit-config.yaml`), **write the specific lines** the project needs rather than copying ours over theirs.
+- Don't explain away an inconsistency you created. If the project's tooling files disagree with its actual stack, check whether this setup put them there before writing it up as a pre-existing quirk.
 - Don't run end to end silently — several steps need the user's input
 - Don't hardcode a credential in `.mcp.json`, even temporarily
 - Don't overwrite a project-local skill during `resync` without showing the diff

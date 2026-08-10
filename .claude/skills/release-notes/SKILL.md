@@ -159,7 +159,8 @@ Write the notes to a file in the scratchpad directory and pass `--notes-file` ra
 Rules for this step:
 
 - **Draft, always.** Publishing is outward-facing and awkward to walk back. Create the draft, show the user the full text and the release URL, and let them publish.
-- **Don't create the tag as a side effect.** If `<tag>` doesn't exist, `gh release create` will make it at the target commit. Say that's what will happen and confirm the target first.
+- **Don't create the tag as a side effect.** If `<tag>` doesn't exist, `gh release create` will make it at the target commit — and not until the draft is *published*, so `git ls-remote --tags` stays empty while it's a draft. Say that's what will happen and confirm the target first.
+- **`--target` needs a full SHA or a branch name.** A short SHA fails with a bare `HTTP 422: Validation Failed — Release.target_commitish is invalid`, which names neither the problem nor the fix. Use `git rev-parse HEAD`, or omit `--target` to default to the release branch. Omitting it is usually right; pin only when the release is not at the branch head.
 - **Check for an existing release** at that tag (`gh release view <tag>`). If one exists, report it and ask whether to update it — never overwrite silently.
 - Add the compare link: `https://github.com/<owner>/<repo>/compare/<prev>...<new>`.
 

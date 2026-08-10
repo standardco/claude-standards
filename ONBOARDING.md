@@ -66,7 +66,15 @@ If a `CLAUDE.md` already exists, insert above the existing content. Never overwr
 
 **Now verify, and stop if it fails.** An import pointing at a missing path produces no error, no warning, and no base rules — the developer will believe our privacy and secrets policies are in effect when nothing is loaded. That is the worst outcome of this whole setup.
 
-Have them run `/memory` and confirm `claude-standards/CLAUDE.md` is listed. Cross-check by asking the session something only the base rules answer, like where secrets live.
+**Verify behaviourally, not by looking at files.** `/memory` will not tell you this — it's a picker for editing memory files, not a list of what loaded. Seeing the import line in `CLAUDE.md` only proves the line exists, not that the path resolved.
+
+Ask the session a question that **only the base rules can answer**, and that can't be guessed from the project:
+
+> What does my CLAUDE.md say about when to use MCP instead of raw HTTP?
+
+A loaded session answers from the base rules: default to MCP for anything used more than once by two or more devs, use the vendor's official MCP where one exists, skip it only for one-shot inspections or public unauthenticated APIs. A session where the import failed has only the project's own `CLAUDE.md` — the import line and whatever is below it — so it will say it doesn't know, or start reading files to find out.
+
+"Where do secrets live?" works too, though it's guessable — a model may say 1Password from general knowledge. The MCP question is harder to fake.
 
 Do not continue until it resolves.
 

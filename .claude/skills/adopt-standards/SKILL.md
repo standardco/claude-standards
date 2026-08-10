@@ -75,7 +75,19 @@ Add the import as the **first line** of the project's `CLAUDE.md`:
 
 If the project already has a `CLAUDE.md`, insert above the existing content. Never overwrite it.
 
-Then verify, because a bad path produces no error and no base rules. Have the user run `/memory` and confirm `claude-standards/CLAUDE.md` is listed. Cross-check by asking the session a question only the base rules answer — where secrets live, or what the de-identification requirement is.
+Then verify, because a bad path produces no error and no base rules.
+
+**Verify behaviourally.** `/memory` does not show what loaded — it's a picker for editing memory files. Reading the import line back out of `CLAUDE.md` only proves the line exists, not that it resolved. The only real test is whether the rules are in effect.
+
+Ask a question that **only the base rules can answer** and that isn't guessable from the project:
+
+> What does my CLAUDE.md say about when to use MCP instead of raw HTTP?
+
+Loaded: it answers from the base rules — MCP by default for anything used more than once by two or more devs, official vendor MCP where one exists, raw HTTP only for one-shots and public unauthenticated APIs. Not loaded: it says it doesn't know, or goes looking through files.
+
+Avoid "where do secrets live?" as the only check — a model may answer 1Password from general knowledge whether or not anything loaded.
+
+**Relative imports above the project root** (`@../claude-standards/CLAUDE.md`, used by the shared-clone option) are the case most likely to fail, and the one this check exists for. Run it before continuing.
 
 **Stop here if it didn't resolve.** Everything downstream assumes the base rules are live.
 
@@ -201,8 +213,7 @@ git remote -v | grep -q 'claude-standards' && echo "source repo"
 
 ### In an adopting project
 
-- [ ] `/memory` lists `claude-standards/CLAUDE.md` — base rules loaded
-- [ ] The session answers "where do secrets live?" from base rules, not from guesswork
+- [ ] The session answers "what does my CLAUDE.md say about when to use MCP instead of raw HTTP?" from the base rules — this is the import check, and it is behavioural. `/memory` does not show what loaded, and the import line being present in the file proves nothing about whether it resolved.
 - [ ] At least one skill appears and runs — invoking this skill is itself proof
 - [ ] `.claude/agents/` has all three reviewers
 - [ ] `pre-commit run --all-files` passes

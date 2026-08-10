@@ -53,7 +53,27 @@ gitleaks detect --source . --verbose      # full history, not just the working t
 
 A clean working tree says nothing about history — deleted secrets persist in old commits, which is the case this step exists to catch. On a hit: **rotate first** (assume compromised), then clean history with `git filter-repo` or BFG, force-push, tell the team to re-clone. Do not continue with live leaked credentials.
 
-Check `.gitignore` covers a bare `.env`, not only `.env.local`. The base rules permit `.env` for non-secret local config, so the file will exist, and "one connection string, temporarily" is how it stops being non-secret.
+Then make sure `.gitignore` carries the full credential-bearing set. Append only what's missing — never copy this repo's `.gitignore` over the project's own:
+
+```bash
+# Newline-safe: a file with no trailing newline would otherwise fuse the
+# last existing entry with the first appended one.
+[ -f .gitignore ] && [ -n "$(tail -c1 .gitignore)" ] && printf '\n' >> .gitignore
+
+for p in '.env' '.env.*' '!.env.example' '!.env.sample' \
+         '.claude/settings.local.json' \
+         '*.pem' '*.key' '*.p12' '*.pfx'; do
+  grep -qxF "$p" .gitignore 2>/dev/null || printf '%s\n' "$p" >> .gitignore
+done
+```
+
+Each of these earns its place:
+
+- **A bare `.env`, not only `.env.local`.** The base rules permit `.env` for non-secret local config, so the file will exist — and "one connection string, temporarily" is how it stops being non-secret.
+- **`.claude/settings.local.json`.** Approving a command with a token inline writes that token permanently into the permission allowlist, where it doesn't look like a credential to a scanner. This is a real pattern in our own repos, not a hypothetical.
+- **Key and cert patterns.** Cheap to ignore, expensive to un-commit.
+
+**Verify by reading `.gitignore` itself, never with `git check-ignore`.** A developer's `~/.config/git/ignore` can cover these patterns machine-wide, so `git check-ignore` reports them ignored on that machine while the project protects nothing. The teammate who clones it has no such file, and the point of putting the patterns in the repo is that they travel.
 
 ### 2. Place the repo
 
@@ -223,6 +243,7 @@ git remote -v | grep -q 'claude-standards' && echo "source repo"
 - [ ] `.claude/agents/` has all three reviewers
 - [ ] `pre-commit run --all-files` passes
 - [ ] `gitleaks detect` clean on full history
+- [ ] The project's own `.gitignore` contains every pattern from step 1 — `grep -c` against the file, **not** `git check-ignore`, which a machine-wide `~/.config/git/ignore` can satisfy on your machine and nobody else's
 - [ ] `## De-identification` and `## Skill Configuration` present in the project `CLAUDE.md`
 - [ ] `git grep -nE '<[A-Z_]{2,}>' -- '*.json' '*.md'` returns nothing committed
 

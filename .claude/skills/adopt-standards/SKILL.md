@@ -274,7 +274,7 @@ Say what failed and what it means in practice — "the import didn't resolve, so
 ## What not to do
 
 - **Don't copy anything from `claude-standards` that isn't named in these steps.** Only `.claude/skills/`, `.claude/agents/`, `.mcp.json`, and the settings *content* transfer. Everything else at the repo root — `.gitignore`, `.pre-commit-config.yaml`, `.tool-versions`, `LICENSE`, `README.md`, `ONBOARDING.md`, `docs/`, `examples/` — belongs to the standards repo and is not a template. Where a file genuinely needs changing (`.gitignore`, `.pre-commit-config.yaml`), **write the specific lines** the project needs rather than copying ours over theirs.
-- **Don't attribute a file to this setup without checking what else could have made it.** A project file matching one in `claude-standards` is not evidence it was copied — developer tooling produces identical content independently. `.tool-versions` is the standing example: `asdf local nodejs <version>` writes it, and many developers run that before starting a session. Check mtimes and ask before treating an unexpected file as either your own artifact or a project quirk.
+- **Don't attribute an unexpected file to this setup without checking.** Matching content is not evidence of copying — version managers and other developer tooling write files that look like ours. Ask before treating one as your artifact or as a project quirk.
 - Don't run end to end silently — several steps need the user's input
 - Don't hardcode a credential in `.mcp.json`, even temporarily
 - Don't overwrite a project-local skill during `resync` without showing the diff

@@ -1,10 +1,27 @@
 # Adopting claude-standards
 
-You are setting up a Standard Co. project to inherit our shared Claude Code standards — base instructions, review agents, and skills — from the `claude-standards` repo.
+You are setting up a project to inherit shared Claude Code standards — base instructions, review agents, and skills — from the `claude-standards` repo.
 
-This file is a **bootstrap**. It covers the four steps needed to get the standards on disk and verified, then hands off to the `/adopt-standards` skill, which is the maintained procedure for everything else. Don't reimplement the later steps from memory — install the skill and run it.
+This file is a **bootstrap**. It covers the steps needed to get the standards on disk and verified, then hands off to the `/adopt-standards` skill, which is the maintained procedure for everything else. Don't reimplement the later steps from memory — install the skill and run it.
 
-Work through this with the developer. Don't run it silently: step 3 needs their decision, and it's a hard stop if verification fails.
+Work through this with the developer. Don't run it silently: Step 0 and Step 3 both need their decision, and Step 3 is a hard stop if verification fails.
+
+---
+
+## Step 0 — Ask where this should be installed
+
+**Ask this first, before installing anything, and ask it in plain terms:**
+
+> Do you want these skills available in **just this project**, or in **all your projects** on this machine?
+
+- **All your projects** — most people want this. Installs to `~/.claude/skills/`. Every repo you open gets them, including ones you haven't created yet.
+- **Just this project** — installs to `<this-project>/.claude/skills/`. Nothing outside this folder changes. Choose this if you're trying it out first, or if you'll need to customise a skill for this repo specifically.
+
+Either way it's a copy of some files, so it's easy to change later. If they pick "just this project" and want it everywhere afterwards, re-run this step — nothing needs undoing.
+
+Don't explain "user level versus project level", `~/.claude` paths, or precedence rules to make this decision. The two options above are the whole choice. Detail only if they ask.
+
+Use their answer as `<skills-dir>` for the rest of this guide.
 
 ---
 
@@ -57,12 +74,21 @@ Do not continue until it resolves.
 
 **The import does not bring skills.** It inlines instruction text only; skills are discovered from directories. Wiring the import and then typing `/sprint-recap` does nothing, which reads as a broken repo.
 
+Install to whichever location they chose in Step 0:
+
 ```bash
-mkdir -p ~/.claude/skills
-cp -r claude-standards/.claude/skills/* ~/.claude/skills/
+# "All my projects"
+mkdir -p ~/.claude/skills && cp -r claude-standards/.claude/skills/* ~/.claude/skills/
+
+# "Just this project"
+mkdir -p .claude/skills && cp -r claude-standards/.claude/skills/* .claude/skills/
 ```
 
-User level means one copy works across every project — the skills are written generic, taking per-project values from a `## Skill Configuration` section in each project's `CLAUDE.md`. Use project-level `.claude/skills/` only when a project needs to modify a skill's behaviour.
+Check first whether anything with the same name is already there, and say so before overwriting — `cp -r` replaces silently.
+
+Installing everywhere works because the skills are generic: the workflow lives in the skill, and per-project values come from a `## Skill Configuration` section in each project's `CLAUDE.md`. If both locations end up holding the same skill, the project copy wins.
+
+**Then confirm a skill actually appears.** Ask them to type `/` and look for `adopt-standards` in the list. Skills are normally picked up as soon as the files exist — no restart. If it isn't there, have them restart the session and check again; if it's still missing, the files went to the wrong place.
 
 These are copies and do not track the source. `/adopt-standards resync` updates them later.
 

@@ -2,6 +2,19 @@
 
 Shared Claude Code configuration for all Standard Co. projects. Projects inherit a base and layer their own overrides on top.
 
+## Set it up
+
+Open a Claude Code session in the project you want to configure — Opus or better — and paste this:
+
+```
+Set this project up to use https://github.com/standardco/claude-standards.
+Read its ONBOARDING.md and follow it.
+```
+
+Your session will ask one question up front — whether you want the skills in **just this project** or in **all your projects** on this machine — and handle the rest: secret scanning, cloning, wiring the base rules, installing the skills and review agents, and verifying that it all actually took effect.
+
+You don't need to read anything first, and you don't need to be at Standard Co. — the repo is public and the setup works for any project.
+
 ## What's in here
 
 | Path | Purpose |
@@ -17,13 +30,9 @@ Shared Claude Code configuration for all Standard Co. projects. Projects inherit
 | `docs/` | Runbooks: secrets, privacy, MCP catalog, adoption guide |
 | `examples/` | Starter templates for project-level config |
 
-## Getting started
+## Once you have it
 
-There are two entry points depending on where you are.
-
-**New to this repo** — start with [`ONBOARDING.md`](ONBOARDING.md). It covers the four steps needed to get the standards on disk and verified, then hands off to the `/adopt-standards` skill for the rest. Ask your team lead for the share link and open it in your own Claude Code session; it'll walk you through it.
-
-**Already have the skill installed** — adopting a new project is one command:
+The setup above installs `/adopt-standards`. After that, adopting another project is one command:
 
 ```
 /adopt-standards adopt      # full setup for a new or existing project
@@ -37,7 +46,9 @@ Run `verify` on any project you haven't touched in a while. Two parts of the set
 
 ## Onboarding a developer
 
-Ask Claude to **refresh the onboarding link**, then send them the URL. They open it in their own Claude Code session and it drives the setup.
+Point them at this repo and the paste-in above — that works for anyone, inside the org or outside it, and needs nothing from you.
+
+Standard Co. teams have a second option: an onboarding share link that opens directly in a Claude Code session, paired with an internal page carrying org-specific context. Ask Claude to **refresh the onboarding link**, then send the URL. It's a convenience, not a requirement — the repo alone is enough.
 
 The link is your org's guide, not a per-person invite:
 

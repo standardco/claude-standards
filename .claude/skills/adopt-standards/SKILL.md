@@ -83,12 +83,24 @@ Then verify, because a bad path produces no error and no base rules. Have the us
 
 **The import does not bring skills.** It inlines instruction text; skills are discovered from directories. Wiring the import and typing `/sprint-recap` does nothing, which reads as "the repo is broken".
 
+**Ask where they want it, in plain terms** — this is a real choice and it is the first thing a new user gets asked:
+
+> Do you want these skills available in **just this project**, or in **all your projects** on this machine?
+
+- **All your projects** → `~/.claude/skills/`. What most people want.
+- **Just this project** → `<project>/.claude/skills/`. Nothing outside this folder changes.
+
 ```bash
-mkdir -p ~/.claude/skills
-cp -r <standards>/.claude/skills/* ~/.claude/skills/
+mkdir -p <skills-dir> && cp -r <standards>/.claude/skills/* <skills-dir>/
 ```
 
-User level by default — the skills are written generic, taking per-project values from `## Skill Configuration`, so one copy serves every repo. Use project-level `.claude/skills/` only when a project needs to *modify* a skill's behaviour; a project-local copy takes precedence.
+Don't explain "user level versus project level", `~/.claude` paths, or precedence to get the answer — the two options above are the whole decision, and it's reversible either way. Expand only if asked.
+
+Check for same-named skills before copying; `cp -r` overwrites silently. If both locations hold the same skill, the project copy wins.
+
+Installing everywhere works because the skills are generic — the workflow lives in the skill, per-project values come from `## Skill Configuration`.
+
+**Confirm one actually appears** before moving on: have them type `/` and look for `adopt-standards`. Skills are normally live as soon as the files exist, no restart needed. If it's missing, restart the session; if still missing, the files are in the wrong place.
 
 These are copies. They do not track the source. That's what `resync` is for.
 

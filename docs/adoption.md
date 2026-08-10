@@ -66,9 +66,12 @@ Importing is strongly preferred — updates land automatically. If you must copy
 
 ### Where skills live
 
-User level (`~/.claude/skills/`) by default: skills here are written generic, taking per-project values from a `## Skill Configuration` section in each project's `CLAUDE.md`, so one copy serves every repo.
+Setup asks this as a plain question — *just this project, or all your projects on this machine?* — because that's the whole decision from a user's point of view. The mechanics behind it:
 
-Use project level (`<project>/.claude/skills/`) only when a project needs to **modify a skill's behaviour** rather than just its inputs. A project-local copy takes precedence over the user-level one.
+- **All your projects** → `~/.claude/skills/`. The default answer for most people. Works because the skills are generic: the workflow lives in the skill, per-project values come from a `## Skill Configuration` section in each project's `CLAUDE.md`, so one copy serves every repo.
+- **Just this project** → `<project>/.claude/skills/`. The right answer when a project needs to **modify a skill's behaviour** rather than just its inputs, or when someone is trying the standards out before committing to them everywhere.
+
+If both exist, the project copy takes precedence. Either way it's a file copy, so switching later costs nothing — don't present it as a decision that needs getting right first time.
 
 ## Things worth knowing before you start
 

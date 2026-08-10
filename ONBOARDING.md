@@ -52,7 +52,17 @@ A clean working tree says nothing about history — deleted secrets persist in o
 git clone https://github.com/standardco/claude-standards.git
 ```
 
-Ask where it should live: a submodule at `./claude-standards/` (version-pinned per project) or one shared clone for all their repos (simpler to update). The answer sets the import path in step 3.
+**Default to a submodule inside the project:**
+
+```bash
+git submodule add https://github.com/standardco/claude-standards.git claude-standards
+```
+
+That gives an import of `@./claude-standards/CLAUDE.md` — inside the working directory, so no trust prompt on session start, pinned to a specific commit, and correct wherever the project is checked out.
+
+The alternative is one shared clone outside their projects, giving `@../claude-standards/CLAUDE.md`. Offer it if they'd rather not carry a submodule, but tell them the cost: it needs external imports approved in every project, and it breaks if the clone stops being a sibling of the project.
+
+The answer sets the import path in Step 3.
 
 ## Step 3 — Import the base rules (verified later, in Step 6)
 

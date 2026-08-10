@@ -63,7 +63,21 @@ Check `.gitignore` covers a bare `.env`, not only `.env.local`. The base rules p
 git clone https://github.com/standardco/claude-standards.git
 ```
 
-Submodule at `./claude-standards/` for per-project version pinning; one shared clone for a developer working across several repos. Settle it now — it determines the import path.
+**Default to a submodule at `./claude-standards/`.** Present it as the recommended option:
+
+```bash
+git submodule add https://github.com/standardco/claude-standards.git claude-standards
+```
+
+Import becomes `@./claude-standards/CLAUDE.md`, entirely inside the project. Three reasons it's the default:
+
+- **No trust prompt.** Nothing is outside the working directory, so no approval is needed on session start — and no chance of the cautious answer silently disabling the base rules.
+- **Version pinned to a commit.** The project records exactly which standards it's on. `git submodule update --remote` is deliberate and shows a diff; the parent repo's history records when the standards moved.
+- **No layout assumption.** The path is correct wherever the project is checked out, including on someone else's machine and in CI.
+
+Offer a **shared clone** as the alternative when the user doesn't want a submodule in the repo — a reasonable preference. Import becomes `@../claude-standards/CLAUDE.md`, which requires approving external imports in every project and only resolves while the clone stays a sibling of the project. If they choose it, say both of those things plainly.
+
+Settle this now — it determines the import path.
 
 ### 3. Import the base CLAUDE.md, then prove it resolved
 

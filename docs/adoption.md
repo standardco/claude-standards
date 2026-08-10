@@ -51,8 +51,8 @@ If a fresh session can't answer without going and reading files, the import didn
 
 ### Where this repo lives
 
-- **Submodule at `./claude-standards/`** — import is `@./claude-standards/CLAUDE.md`, entirely inside the project. Version-pinned, updated deliberately with `git submodule update --remote`. Best when projects need different versions, or when you want setup to work with no further prompts.
-- **One shared clone** outside your projects — import is `@../claude-standards/CLAUDE.md`. One place to pull updates, no submodule in the repo. Best for a single developer across several sibling repos.
+- **Submodule at `./claude-standards/` — the default.** Import is `@./claude-standards/CLAUDE.md`, entirely inside the project. No trust prompt, pinned to a specific commit, and the path is correct wherever the repo is checked out — including on a teammate's machine and in CI. Updated deliberately with `git submodule update --remote`, which produces a reviewable diff and records in the parent repo's history when the standards moved.
+- **One shared clone** outside your projects — import is `@../claude-standards/CLAUDE.md`. One place to pull updates and no submodule in the repo, which some teams prefer. Costs below.
 
 **The shared clone carries a cost that isn't obvious.** Because the import points outside the working directory, Claude Code asks for approval on session start:
 
@@ -63,7 +63,9 @@ Answer yes and it works — verified. Answer no and the base rules never load, s
 
 The shared clone also assumes a directory layout: `@../claude-standards/` only resolves if the clone is a sibling of the project. Move either one and every import breaks.
 
-A submodule has neither problem. Weigh that against carrying a submodule in each repo.
+And it pins nothing — a shared clone is silently whatever commit it happens to be sitting at, so two projects on the same machine can never be on different versions, and nothing records when the standards changed under them.
+
+A submodule has none of these problems. Its cost is carrying a submodule in each repo and remembering `git submodule update --remote`. Prefer it unless your team has a specific objection to submodules.
 
 This determines your import path, so settle it before writing the import.
 

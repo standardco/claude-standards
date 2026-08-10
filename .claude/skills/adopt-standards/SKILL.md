@@ -44,7 +44,7 @@ First deliberately. Later steps put credential-shaped placeholders into version-
 cat > .pre-commit-config.yaml << 'EOF'
 repos:
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.0
+    rev: v8.30.0
     hooks:
       - id: gitleaks
 EOF

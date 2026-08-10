@@ -18,7 +18,7 @@ brew install gitleaks pre-commit     # or the platform equivalent
 cat > .pre-commit-config.yaml << 'EOF'
 repos:
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.0
+    rev: v8.30.0
     hooks:
       - id: gitleaks
 EOF

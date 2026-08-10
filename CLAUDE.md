@@ -38,7 +38,7 @@ See [`docs/secrets.md`](docs/secrets.md) for the full runbook.
 - Where you do need a server, its definition lives in that project's `./.mcp.json` — team-shared and version-controlled, not in `.claude/`. This repo ships no server template.
 - If you find yourself reaching for raw HTTP twice against the same service, that's a signal to add an MCP.
 
-See [`docs/mcps.md`](docs/mcps.md) for the full catalog and rationale.
+See [`docs/mcps.md`](docs/mcps.md) for the decision rules and rationale.
 
 ---
 

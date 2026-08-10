@@ -26,7 +26,7 @@ You don't need to read anything first, and you don't need to be at Standard Co. 
 | `.claude/agents/` | Parallel code-review subagents |
 | `.claude/commands/` | Shared slash commands |
 | `.claude/skills/` | Reusable task templates |
-| `docs/` | Runbooks: secrets, privacy, MCP catalog, adoption guide |
+| `docs/` | Runbooks: secrets, privacy, MCP guidance, adoption guide |
 | `examples/` | Starter templates for project-level config |
 
 ## Once you have it

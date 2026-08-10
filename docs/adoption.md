@@ -85,6 +85,8 @@ If both exist, the project copy takes precedence. Either way it's a file copy, s
 
 **Permission patterns:** `:*` only matches at the **end** of a pattern. `Bash(git:*)` works; mid-pattern it silently never matches, which reads as a rule that does nothing rather than as an error.
 
+**Skill Configuration is optional, and stubs are fine.** Every installed skill works whether or not it has an entry — an unconfigured skill just asks at runtime, which is usually the moment you actually know the answer. Setup writes the section with `<TODO>` markers rather than interviewing you about skills you may never run. Fill them in as you go.
+
 **Resolve every placeholder before committing.** Check with `git grep -nE '<[A-Z_]{2,}>' -- '*.json' '*.md'`. The exception is this repo itself — `.mcp.json`, `examples/`, and the docs here are templates, so unresolved placeholders are correct in `claude-standards` and nowhere else.
 
 ## After adoption

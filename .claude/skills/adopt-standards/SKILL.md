@@ -120,7 +120,23 @@ Merge into any existing `.claude/settings.json` rather than copying over it. Add
 
 ### 7. Write Skill Configuration
 
-Add a `## Skill Configuration` section to the project `CLAUDE.md` using [`examples/project-CLAUDE.md`](../../../examples/project-CLAUDE.md). Include only the skills this project uses. Ask for the values you can't read from the repo.
+**Do not ask which skills the project uses.** Every installed skill is available regardless, and an unconfigured skill simply asks at runtime — so there is nothing to gate. Enumerating skills for the user to pick from is the one question here that grows every time a skill is added to `claude-standards`, and it reads as "choose what you get" when it only means "choose what to pre-fill." Write the section and move on.
+
+Add a `## Skill Configuration` section to the project `CLAUDE.md`, using [`examples/project-CLAUDE.md`](../../../examples/project-CLAUDE.md) for the shape. Include an entry for every shared skill that **takes** configuration — you know which those are by reading the skills, not by asking.
+
+Fill in what the repo tells you: branch names, stack, test runner, output paths, clipboard command. Stub what it can't, with a visible marker:
+
+```markdown
+### sprint-recap
+- **Sprint board:** <TODO — fill in when you first run /sprint-recap>
+- **Staging branch:** `staging`
+- **Production branch:** `main`
+- **Task ID prefix:** `<TODO>`
+```
+
+A stub is not a failure state. The skill prompts for anything missing the first time it runs, which is the moment the user actually knows the answer. Guessing a Notion URL to avoid a stub is strictly worse.
+
+List the stubbed values in the hand-back summary (step 10) so nothing is silently left blank.
 
 ### 8. MCP servers — the leak step
 
@@ -143,6 +159,8 @@ If the user doesn't know yet, leave it stubbed and flag it. A wrong process docu
 ### 10. Verify and hand back
 
 Run the `verify` mode checklist below, then report plainly: what is set up, what was skipped and why, what still needs a human. Credential injection and de-identification are the two that usually do.
+
+End with a short **"what still needs you"** list — every `<TODO>` stub written in step 7, plus anything deferred. That list is what replaces asking up front: the user leaves with a working setup and a known set of blanks, rather than having answered a questionnaire before seeing any of it work.
 
 On a project with existing code, recommend a baseline security audit (`/security-audit full`) before new work starts — it surfaces pre-existing vulnerabilities and gives the team a ranked fix list. Recommend it; don't run it unasked, since it's a substantial pass.
 
@@ -211,6 +229,7 @@ Say what failed and what it means in practice — "the import didn't resolve, so
 - **Verify, don't assume.** The two silent failures are the reason this skill exists. A file being present is not evidence a rule is loaded.
 - **Merge, never overwrite.** Existing `CLAUDE.md`, settings, and customised skills represent decisions someone made.
 - **Ask for what the repo can't tell you.** Notion URLs, task prefixes, credential injection. Read branch names and stack yourself.
+- **Ask about decisions, never about inventory.** A question the user has to answer once is fine — import path, install scope, MCP servers. A question that lists things from this repo and asks them to tick boxes is not a decision, it's data entry, and it gets longer every time `claude-standards` grows. Stub instead, and say what you stubbed.
 - **Stop at the credential step if unsure.** Every other step here is reversible. That one isn't.
 - **Report gaps as gaps.** A stubbed de-identification section flagged out loud beats an invented one.
 

@@ -82,6 +82,8 @@ Use project level (`<project>/.claude/skills/`) only when a project needs to **m
 
 **Permission patterns:** `:*` only matches at the **end** of a pattern. `Bash(git:*)` works; mid-pattern it silently never matches, which reads as a rule that does nothing rather than as an error.
 
+**Resolve every placeholder before committing.** Check with `git grep -nE '<[A-Z_]{2,}>' -- '*.json' '*.md'`. The exception is this repo itself — `.mcp.json`, `examples/`, and the docs here are templates, so unresolved placeholders are correct in `claude-standards` and nowhere else.
+
 ## After adoption
 
 Run a baseline security audit on any project with existing code:

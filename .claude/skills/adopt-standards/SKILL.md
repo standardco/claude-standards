@@ -161,18 +161,38 @@ If the project imports `CLAUDE.md` rather than copying it, base-rule changes are
 
 ## Mode: verify
 
-Read-only. Check each item by running it, not by looking for the file:
+Read-only. Check each item by running it, not by looking for the file.
+
+**First, establish which repo you're in.** Running this against `claude-standards` itself is a different check than running it against a project that adopts it, and reporting the wrong one sends people to "fix" things that are correct.
+
+```bash
+git remote -v | grep -q 'claude-standards' && echo "source repo"
+```
+
+### In an adopting project
 
 - [ ] `/memory` lists `claude-standards/CLAUDE.md` — base rules loaded
 - [ ] The session answers "where do secrets live?" from base rules, not from guesswork
-- [ ] At least one skill appears and runs — `/release-notes` with no arguments is a safe read-only check
+- [ ] At least one skill appears and runs — invoking this skill is itself proof
 - [ ] `.claude/agents/` has all three reviewers
 - [ ] `pre-commit run --all-files` passes
 - [ ] `gitleaks detect` clean on full history
 - [ ] `## De-identification` and `## Skill Configuration` present in the project `CLAUDE.md`
-- [ ] `grep -rn '<[A-Z_]*>' . --include="*.json" --include="*.md"` returns nothing committed
+- [ ] `git grep -nE '<[A-Z_]{2,}>' -- '*.json' '*.md'` returns nothing committed
 
-Report what failed and what it means in practice — "the import didn't resolve, so no privacy or secrets rules are loaded" is the finding, not "step 3 incomplete".
+### In `claude-standards` itself
+
+Three checks don't apply, and reporting them as failures is wrong:
+
+- **No import to verify.** The repo *is* the base; its `CLAUDE.md` loads directly.
+- **No `## De-identification` or `## Skill Configuration`.** Those are what adopting projects write. The base defines the requirement; it doesn't consume it, and it holds no project data.
+- **Placeholders are intentional.** `.mcp.json`, `examples/`, and the docs are templates. Unresolved `<PLACEHOLDER>` strings are correct here and nowhere else.
+
+Everything else applies, and the secret-scanning checks matter **more** here, not less — this is the repo people clone as their starting point, so a gap propagates to every project downstream. Check them explicitly rather than waving them through as self-evidently fine.
+
+### Reporting
+
+Say what failed and what it means in practice — "the import didn't resolve, so no privacy or secrets rules are loaded" is the finding, not "step 3 incomplete". Mark inapplicable checks as not applicable **with the reason**; a bare "skipped" reads as an untested gap.
 
 ## Key guidelines
 

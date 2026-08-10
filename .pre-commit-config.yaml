@@ -1,0 +1,10 @@
+# Secret scanning for claude-standards itself.
+#
+# This repo mandates pre-commit secret scanning for every project that adopts
+# it, and is the template people copy — so it runs the same hook it requires.
+# Adopting projects get this file via /adopt-standards.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.0
+    hooks:
+      - id: gitleaks

@@ -1,227 +1,102 @@
 # Adopting claude-standards in a project
 
-This guide walks through wiring a new (or existing) project to inherit from this repo.
+This is the **explainer**: what the pieces are, how they fit together, and which decisions you have to make. It is not a step-by-step procedure.
 
-## Three import modes
+The procedure is the [`/adopt-standards`](../.claude/skills/adopt-standards/SKILL.md) skill:
 
-Choose the mode that fits your project:
+```
+/adopt-standards adopt      # full setup for a new or existing project
+/adopt-standards resync     # pull in changes after this repo is updated
+/adopt-standards verify     # read-only check that a setup still works
+```
 
-| Mode | When to use |
-|------|-------------|
-| **Base + custom overrides** | Most projects — inherit everything, add project-specific rules |
-| **Base + API-specific rules** | Services with complex schemas or endpoint contracts |
-| **Base as-is** | Internal tooling with no project-specific Claude rules |
+If you don't have the skill yet, [`ONBOARDING.md`](../ONBOARDING.md) at the repo root bootstraps you to the point of having it, then hands off. It's also what you share with a new developer — see `ShareOnboardingGuide`.
+
+Keeping the steps in one place is deliberate. A procedure duplicated across a doc and a skill drifts, and the copy that drifts is always the one someone follows.
 
 ---
 
-## Step 1 — Pull in the base CLAUDE.md
+## The mental model
 
-Claude Code supports `@path/to/file` imports in `CLAUDE.md`. Create a project-level `CLAUDE.md` that starts with:
+Adoption moves three different kinds of thing into your project, and they behave differently. Most confusion about this repo comes from treating them the same.
 
-```markdown
-@<PATH_OR_URL_TO_CLAUDE_STANDARDS>/CLAUDE.md
+| What | How it arrives | Updates when this repo changes? |
+|------|----------------|---------------------------------|
+| Base instructions (`CLAUDE.md`) | **Imported** via `@path` | Yes, automatically — the import resolves at load time |
+| Skills (`.claude/skills/`) | **Copied** to `~/.claude/skills/` or the project | No — copies drift, use `resync` |
+| Review agents (`.claude/agents/`) | **Copied** to the project | No — copies drift, use `resync` |
+| MCP servers (`.mcp.json`) | **Copied**, then credentials wired | No — never auto-syncs, always manual |
 
-# <Project Name> — Project-specific rules
+The consequence people trip on: **the `@import` does not bring skills.** It inlines instruction text. Skills are discovered from directories. Wiring the import and then typing `/sprint-recap` does nothing, and the natural conclusion is that the repo is broken.
 
-<your overrides here>
-```
+## Two failures that are silent
 
-If you're using a monorepo or have this repo as a git submodule at `./claude-standards/`:
+Both leave a project looking correctly configured with none of the standards in effect. That is worse than an obviously unconfigured project, because nobody goes looking.
 
-```markdown
-@./claude-standards/CLAUDE.md
-```
+**A `CLAUDE.md` import that doesn't resolve.** `@./claude-standards/CLAUDE.md` assumes the repo is at exactly that path. Point it somewhere else and you get no error, no warning, and no base rules — including the privacy and secrets policies. Verify with `/memory` that `claude-standards/CLAUDE.md` is listed, and cross-check by asking your session something only the base rules answer.
 
-If you're copying files directly (no submodule), copy `CLAUDE.md` to your project root and add a comment at the top noting the source version:
+**Skills that were never installed.** Covered above. Confirm a skill actually appears and runs.
+
+`/adopt-standards verify` checks both, plus the rest, by running them rather than looking for files.
+
+## Decisions you have to make
+
+### Where this repo lives
+
+- **Submodule at `./claude-standards/`** — version-pinned per project, updated deliberately with `git submodule update --remote`. Best when different projects need different versions.
+- **One shared clone** outside your projects — simpler, one place to pull updates. Best for a single developer working across several repos.
+
+This determines your import path, so settle it before writing the import.
+
+### How much you override
+
+| Mode | When to use |
+|------|-------------|
+| **Base + custom overrides** | Most projects — inherit everything, add project-specific rules below the import |
+| **Base + API-specific rules** | Services with complex schemas or endpoint contracts |
+| **Base as-is** | Internal tooling with no project-specific Claude rules |
+
+### Import or copy the base rules
+
+Importing is strongly preferred — updates land automatically. If you must copy `CLAUDE.md` instead, record where it came from so a future re-sync has a baseline to diff against:
 
 ```markdown
 <!-- Inherited from claude-standards @ <commit-sha>. Re-sync when base changes. -->
 ```
 
----
+### Where skills live
 
-## Step 2 — Wire the MCP servers
+User level (`~/.claude/skills/`) by default: skills here are written generic, taking per-project values from a `## Skill Configuration` section in each project's `CLAUDE.md`, so one copy serves every repo.
 
-Copy `.mcp.json` to your project root:
+Use project level (`<project>/.claude/skills/`) only when a project needs to **modify a skill's behaviour** rather than just its inputs. A project-local copy takes precedence over the user-level one.
 
-```bash
-cp claude-standards/.mcp.json ./.mcp.json
-```
+## Things worth knowing before you start
 
-Then:
-1. Remove any servers your project doesn't use.
-2. Swap every `<PLACEHOLDER>` for real values — but do not hardcode secrets. Point to 1Password or AWS Secrets Manager references instead.
-3. Add any project-specific servers at the bottom.
+**Secret scanning comes first, not last.** Setup writes credential-shaped placeholders into version-controlled files, so the protection has to exist before the values do. The base `CLAUDE.md` puts this at `git init` time. Also audit existing history — deleted secrets persist in old commits, and a clean working tree says nothing about that.
 
-MCP config lives at `./.mcp.json` (project root), not inside `.claude/`. This keeps it version-controlled and team-shared.
+**`.mcp.json` is where credentials leak.** Every server carries a bare `<GITHUB_PAT>`-style placeholder in an `env` block that accepts a literal string, and the file is version-controlled and team-shared by design. Credentials come from AWS Secrets Manager or 1Password and are injected at runtime — never written into the file. If you don't know how a value gets injected, stop and ask. See the [secrets runbook](secrets.md).
 
----
+**De-identification is required, not optional.** Every project `CLAUDE.md` needs a `## De-identification` section covering which fields are removed, which are transformed and how, and where synthetic test data comes from. Template in [`docs/data-privacy.md`](data-privacy.md). If you don't know the answer yet, stub it and flag it — a wrong process documented as correct is worse than an obvious gap.
 
-## Step 3 — Configure the review agents
+**`style-enforcer` reads your `CLAUDE.md`.** The agent needs no changes to work; it picks up project conventions from the file. Edit `.claude/agents/style-enforcer.md` directly only when you want review rules that don't belong in `CLAUDE.md`.
 
-Copy the agents directory:
+**Permission patterns:** `:*` only matches at the **end** of a pattern. `Bash(git:*)` works; mid-pattern it silently never matches, which reads as a rule that does nothing rather than as an error.
 
-```bash
-cp -r claude-standards/.claude/agents/ ./.claude/agents/
-```
+## After adoption
 
-The `style-enforcer` agent references `CLAUDE.md` for project conventions. No changes needed unless you want to add project-specific review rules — in which case, edit `.claude/agents/style-enforcer.md` directly.
-
----
-
-## Step 4 — Copy settings
-
-```bash
-cp claude-standards/.claude/settings.json ./.claude/settings.json
-```
-
-Adjust the `permissions` block for your project's needs. Common additions:
-
-```json
-"allow": [
-  "Bash(pytest:*)",
-  "Bash(rspec:*)",
-  "Bash(yarn:*)"
-]
-```
-
----
-
-## Step 5 — Configure skills for your project
-
-Skills in `claude-standards` are generic — they define the workflow but don't know your project's URLs, branch names, or Notion page IDs. Each project provides this context in a `## Skill Configuration` section in its `CLAUDE.md`.
-
-Add this section to your project's `CLAUDE.md`:
-
-```markdown
-## Skill Configuration
-
-### sprint-recap
-- **Sprint board:** https://www.notion.so/your-org/sprint-board-id
-- **Recap page:** https://www.notion.so/your-org/recap-page-id
-- **Staging branch:** `staging`
-- **Production branch:** `main`
-- **Staging URL:** https://your-app-staging.example.com
-- **Task ID prefix:** `PROJ-`
-
-### user-docs
-- **Output path:** `docs/user-guide.md`
-- **Audience:** end users (non-technical)
-- **Notion page:** https://www.notion.so/your-org/docs-page-id
-
-### handoff
-- **Paired project:** `your-other-repo` — this project is the producer
-- **Deployment URLs:** production https://api.example.com, staging https://api-staging.example.com
-- **Clipboard command:** `pbcopy`
-```
-
-Skills check this section first for defaults before prompting the user. Only include entries for skills your project uses — omit the rest.
-
-If your project needs to **override a skill's behavior** (not just its inputs), copy the skill's `SKILL.md` into your project's `.claude/skills/` directory and modify it there. The project-local copy takes precedence.
-
----
-
-## Step 6 — Set up pre-commit secret scanning
-
-```bash
-brew install gitleaks pre-commit
-
-# In your project root
-cat > .pre-commit-config.yaml << 'EOF'
-repos:
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.0
-    hooks:
-      - id: gitleaks
-EOF
-
-pre-commit install
-```
-
-This must be done before the first commit that could contain credentials.
-
----
-
-## Step 7 — Document your de-identification process
-
-Add a `## De-identification` section to your project's `CLAUDE.md` following the template in [`docs/data-privacy.md`](data-privacy.md). Minimum required:
-
-- What fields are removed before data touches Claude
-- What fields are transformed and how
-- Where synthetic test data comes from
-
----
-
-## Step 8 — Audit existing secrets in git history
-
-Before proceeding, check whether the repo already has secrets committed — even if they've been removed from the working tree, they persist in git history.
-
-```bash
-# Working tree only — catches secrets that are still present in checked-out files
-grep -rn 'AWS_SECRET\|PRIVATE_KEY\|api_key\|password\s*=' .env* config/ 2>/dev/null
-
-# Full history — catches secrets that were committed and later deleted
-gitleaks detect --source . --verbose
-```
-
-Run both. The grep sees only the current checkout, so a clean result from it says nothing about history — which is the case this step exists to catch. If `gitleaks` isn't installed, install it rather than skipping; the working-tree scan is not a substitute.
-
-If secrets are found:
-1. **Rotate immediately** — assume they've been compromised
-2. **Remove from git history** using `git filter-repo` or BFG Repo-Cleaner
-3. **Force-push** and notify the team to re-clone
-4. Move credentials to AWS Secrets Manager / 1Password per the [secrets runbook](secrets.md)
-
-Run this on any repo created before it adopted these standards — automated scanning may not have been wired up from the first commit.
-
----
-
-## Step 9 — Swap placeholders
-
-Search your project for `<PLACEHOLDER>` strings and replace them:
-
-```bash
-grep -r '<[A-Z_]*>' . --include="*.json" --include="*.md"
-```
-
-Do not commit files that still contain unresolved placeholders (except in this template repo itself).
-
----
-
-## Step 10 — Run a baseline security audit (recommended)
-
-If the project has existing code, run a security audit before starting new work:
+Run a baseline security audit on any project with existing code:
 
 ```
 /security-audit full
 ```
 
-This surfaces any pre-existing vulnerabilities and gives the team a prioritized fix list. See [`.claude/skills/security-audit/SKILL.md`](../.claude/skills/security-audit/SKILL.md) for details.
-
----
+This surfaces pre-existing vulnerabilities and gives the team a prioritized fix list before new work starts. See [`.claude/skills/security-audit/SKILL.md`](../.claude/skills/security-audit/SKILL.md).
 
 ## Keeping in sync
 
-When `claude-standards` is updated:
+`/adopt-standards resync` handles this. What it's working around:
 
-- If using `@import` syntax: changes take effect automatically.
-- If using a submodule: `git submodule update --remote`.
-- If using copied files: re-copy and resolve diffs manually. The comment at the top of `CLAUDE.md` should include the commit SHA you last synced from.
-
-`.mcp.json` changes are not auto-synced. When a new MCP is added to the base, the project owner must pull it in manually and swap in the relevant credentials.
-
----
-
-## Checklist
-
-- [ ] Project `CLAUDE.md` imports or copies base `CLAUDE.md`
-- [ ] Project `CLAUDE.md` has a `## De-identification` section
-- [ ] Project `CLAUDE.md` has a `## Skill Configuration` section (if using skills)
-- [ ] `.mcp.json` copied, unused servers removed, placeholders replaced
-- [ ] `.claude/agents/` copied
-- [ ] `.claude/settings.json` copied and adjusted
-- [ ] Pre-commit secret scanning installed and tested
-- [ ] No `<PLACEHOLDER>` strings remaining in committed files
-- [ ] No secrets in `.env`, code, or comments
-- [ ] Existing git history audited for leaked secrets (Step 8)
-- [ ] Baseline security audit run on existing code (Step 10, recommended)
+- **Imported `CLAUDE.md`** — already current, nothing to do.
+- **Submodule** — `git submodule update --remote`.
+- **Copied files** — skills and agents are snapshots. `resync` diffs them against upstream and separates genuine upstream changes from your deliberate local modifications, so a customised skill doesn't get silently clobbered.
+- **`.mcp.json`** — never auto-syncs. When a new MCP is added to the base, the project owner pulls it in manually and wires the credentials.

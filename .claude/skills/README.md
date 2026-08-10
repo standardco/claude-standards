@@ -21,7 +21,9 @@ See [`docs/adoption.md`](../../docs/adoption.md) for how to set up the `## Skill
 
 | Skill | Trigger | What it does |
 |-------|---------|-------------|
+| `/adopt-standards` | "set this repo up with our Claude config" | Wires a project to inherit claude-standards, verifies the rules are actually loaded, re-syncs after upstream changes |
 | `/sprint-recap` | "generate a sprint recap" | Cross-references Notion sprint board with git history, writes recap to Notion, creates a GitHub PR with release notes |
+| `/release-notes` | "write release notes for v2.4.0" | Reconciles a tag range against merged PRs, linked issues, and sprint cards; creates a draft GitHub Release |
 | `/user-docs` | "create user documentation" | Reads views, controllers, and routes to generate end-user feature guides with screenshot placeholders |
 | `/security-audit` | "run a security audit" | Runs `security-auditor` in five parallel scoped passes, consolidates findings into a ranked report with proposed fixes |
 | `/end-of-day` | "clocking out", "wrapping up for the day" | Sweeps for uncommitted and ephemeral state, writes a durable handoff note outside the repo, names tomorrow's first action |
@@ -39,6 +41,34 @@ Gathers task cards from a Notion sprint board, correlates with git branches and 
 - Staging and production branch names
 - Staging environment URL
 - Task ID prefix (e.g. `PROJ-`, `EDU-`)
+
+### adopt-standards
+
+Sets up a project to inherit this repo — base instructions, review agents, and skills — and then **proves the standards are loaded** rather than assuming the files landed. Two parts of the setup fail silently: a `CLAUDE.md` import pointing at the wrong path, and skills that were never installed because the import doesn't carry them. Both leave a project looking configured with none of the rules in effect, which is worse than an obviously unconfigured one.
+
+Runs secret scanning *first*, before any step creates credential-shaped placeholders in version-controlled files. Merges rather than overwrites, since an existing `CLAUDE.md` or customised skill represents someone's decision. Stops at the `.mcp.json` credential step when injection is unclear instead of hardcoding a value "for now" — every other step is reversible and that one isn't.
+
+Three modes: `adopt` (full setup), `resync` (pull upstream changes, showing local modifications rather than clobbering them), `verify` (read-only check that a setup still works).
+
+[`ONBOARDING.md`](../../ONBOARDING.md) at the repo root is the bootstrap for developers who don't have the skill yet — it covers the four steps up to installing skills, then hands off to `/adopt-standards`. Share it with `ShareOnboardingGuide`. The procedure is maintained here; the bootstrap deliberately stops short of duplicating it.
+
+**Usage:** `/adopt-standards [adopt | resync | verify]` — defaults to `adopt`.
+
+**Project context needed:** none. This skill is what creates it.
+
+### release-notes
+
+Turns a range of shipped commits into technical release notes and creates a **draft** GitHub Release. Git history defines the scope; merged PRs, linked issues, and Notion sprint cards supply the reasoning; the diff verifies anything stated as fact.
+
+Entries are grouped by what the reader must do — breaking changes first, internal work collapsed to one line — and every entry cites a PR number or SHA so it stays checkable later. Reads the actual diff before calling anything breaking, since a missed breaking change is the one error in release notes that becomes someone else's incident. Scrubs client names, PII, internal hostnames, and contributor emails out of card titles and PR bodies before anything reaches GitHub, because a release is public the moment it's published.
+
+Distinct from `/sprint-recap`: that one is time-boxed, pre-merge, and written for reviewers as a PR body with a test plan. This one is version-boxed, post-merge, and written for whoever reads the Releases page later.
+
+**Usage:** `/release-notes [v2.4.0 | v2.3.0..v2.4.0]` — omit the range to use the last tag through `HEAD`.
+
+**Project context needed** (in `CLAUDE.md` → `## Skill Configuration`):
+- Release branch and tag scheme
+- Notion sprint board URL and task ID prefix (optional — falls back to GitHub issues and PRs)
 
 ### security-audit
 

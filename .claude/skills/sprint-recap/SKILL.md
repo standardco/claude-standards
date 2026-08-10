@@ -12,6 +12,8 @@ Generate a comprehensive sprint recap by cross-referencing a Notion sprint board
 1. Write the recap to a Notion page
 2. Create a GitHub PR from the staging branch to the production branch with the recap as release notes
 
+> For notes on a **tagged release** rather than a sprint, use [`/release-notes`](../release-notes/SKILL.md). That skill is version-boxed and post-merge, and publishes a draft GitHub Release. This one is time-boxed and pre-merge, and its release notes live in a PR body aimed at reviewers.
+
 > **Project-specific context** (sprint board URL, recap page ID, branch names, staging URL, task ID prefix) should be defined in the project's `CLAUDE.md` under `## Skill Configuration`. Check there first before asking the user.
 
 ## Inputs

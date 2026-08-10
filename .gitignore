@@ -1,7 +1,10 @@
 # Environment and secrets
-.env.local
-.env.1password
-.env*.local
+# Every .env variant is ignored. The base CLAUDE.md permits .env for non-secret
+# local config, which is exactly how a credential ends up in one.
+.env
+.env.*
+!.env.example
+!.env.sample
 
 # Claude Code local settings
 .claude/settings.local.json

@@ -1,0 +1,192 @@
+---
+name: adopt-standards
+description: Wire a project to inherit claude-standards — base instructions, review agents, and skills — then verify the standards are actually in effect; also re-syncs and audits an existing setup
+when_to_use: Use when setting up a new or existing project to use claude-standards ("adopt the standards", "set this repo up with our Claude config"), when re-syncing after claude-standards changes, or when checking whether a project's setup is actually working
+argument-hint: "[adopt | resync | verify]"
+allowed-tools: Bash(git clone *) Bash(git submodule *) Bash(git log *) Bash(git rev-parse *) Bash(git status *) Bash(git remote *) Bash(diff *) Bash(cp *) Bash(mkdir *) Bash(ls *) Bash(grep *) Bash(cat *) Bash(gitleaks *) Bash(pre-commit *) Read Write Edit Grep Glob
+---
+
+# Adopt claude-standards
+
+Wire a project to inherit our shared standards — base instructions, review agents, and skills — and then prove they're actually loaded.
+
+The proving is the point. Two parts of this setup fail **silently**: a `CLAUDE.md` import that doesn't resolve, and skills that were never installed. In both cases nothing errors, the project looks configured, and none of the standards are in effect. A developer who believes the privacy rules are loaded when they aren't is worse off than one who knows they're unconfigured.
+
+> Rationale for each step lives in [`docs/adoption.md`](../../../docs/adoption.md). This skill is the executable procedure; that doc is the explainer. If they disagree, this file is correct.
+
+## Modes
+
+Take the mode from the argument, or infer it: no `CLAUDE.md` import → `adopt`; import present → `verify` unless the user asked to update.
+
+- **`adopt`** (default) — full setup for a new or existing project
+- **`resync`** — pull in changes after `claude-standards` has been updated
+- **`verify`** — check an existing setup without changing anything
+
+## Inputs
+
+Infer what you can, ask for the rest. Never guess at these:
+
+- **Where `claude-standards` lives** — submodule at `./claude-standards/`, or a shared clone elsewhere. Determines the import path.
+- **Notion URLs and task ID prefix** — unknowable from the repo. A guessed sprint board URL points a skill at the wrong workspace.
+- **How credentials are injected** — 1Password CLI or AWS SSM. If unclear, stop and ask. Never hardcode "for now".
+
+Branch names, stack, and test runner you can read from the repo. Do that rather than asking.
+
+---
+
+## Mode: adopt
+
+### 1. Secret scanning, before anything else
+
+First deliberately. Later steps put credential-shaped placeholders into version-controlled files, and the moment those get real values an unprotected repo is one `git add -A` from a leak. The base `CLAUDE.md` says to wire this at `git init` time, not later — so do it before creating the files that carry the risk.
+
+```bash
+cat > .pre-commit-config.yaml << 'EOF'
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.0
+    hooks:
+      - id: gitleaks
+EOF
+
+pre-commit install
+gitleaks detect --source . --verbose      # full history, not just the working tree
+```
+
+A clean working tree says nothing about history — deleted secrets persist in old commits, which is the case this step exists to catch. On a hit: **rotate first** (assume compromised), then clean history with `git filter-repo` or BFG, force-push, tell the team to re-clone. Do not continue with live leaked credentials.
+
+Check `.gitignore` covers a bare `.env`, not only `.env.local`. The base rules permit `.env` for non-secret local config, so the file will exist, and "one connection string, temporarily" is how it stops being non-secret.
+
+### 2. Place the repo
+
+```bash
+git clone https://github.com/standardco/claude-standards.git
+```
+
+Submodule at `./claude-standards/` for per-project version pinning; one shared clone for a developer working across several repos. Settle it now — it determines the import path.
+
+### 3. Import the base CLAUDE.md, then prove it resolved
+
+Add the import as the **first line** of the project's `CLAUDE.md`:
+
+```markdown
+@./claude-standards/CLAUDE.md
+```
+
+If the project already has a `CLAUDE.md`, insert above the existing content. Never overwrite it.
+
+Then verify, because a bad path produces no error and no base rules. Have the user run `/memory` and confirm `claude-standards/CLAUDE.md` is listed. Cross-check by asking the session a question only the base rules answer — where secrets live, or what the de-identification requirement is.
+
+**Stop here if it didn't resolve.** Everything downstream assumes the base rules are live.
+
+### 4. Install skills
+
+**The import does not bring skills.** It inlines instruction text; skills are discovered from directories. Wiring the import and typing `/sprint-recap` does nothing, which reads as "the repo is broken".
+
+```bash
+mkdir -p ~/.claude/skills
+cp -r <standards>/.claude/skills/* ~/.claude/skills/
+```
+
+User level by default — the skills are written generic, taking per-project values from `## Skill Configuration`, so one copy serves every repo. Use project-level `.claude/skills/` only when a project needs to *modify* a skill's behaviour; a project-local copy takes precedence.
+
+These are copies. They do not track the source. That's what `resync` is for.
+
+### 5. Install review agents
+
+```bash
+mkdir -p .claude/agents && cp -r <standards>/.claude/agents/* .claude/agents/
+```
+
+`bug-hunter`, `security-auditor`, `style-enforcer` run **in parallel**, one job each. Don't collapse them into a single reviewer.
+
+### 6. Merge settings
+
+Merge into any existing `.claude/settings.json` rather than copying over it. Add what the stack needs — `Bash(pytest:*)`, `Bash(rspec:*)`, `Bash(yarn:*)`.
+
+`:*` only matches at the **end** of a permission pattern. Mid-pattern it silently never matches, which reads as a rule that does nothing rather than as an error.
+
+### 7. Write Skill Configuration
+
+Add a `## Skill Configuration` section to the project `CLAUDE.md` using [`examples/project-CLAUDE.md`](../../../examples/project-CLAUDE.md). Include only the skills this project uses. Ask for the values you can't read from the repo.
+
+### 8. MCP servers — the leak step
+
+```bash
+cp <standards>/.mcp.json ./.mcp.json
+```
+
+Remove unused servers, then swap placeholders. **This is where credentials leak.** Every server carries a bare `<GITHUB_PAT>`-style placeholder in an `env` block that takes a literal string, and `.mcp.json` is version-controlled and team-shared by design.
+
+Never write a real credential into it. Source of truth is AWS Secrets Manager and 1Password; values are injected at runtime via the 1Password CLI or AWS SSM. If you don't know how a given value is injected, stop and ask — see [`docs/secrets.md`](../../../docs/secrets.md).
+
+`.mcp.json` belongs at the project root, not in `.claude/`.
+
+### 9. Document de-identification
+
+Every project `CLAUDE.md` needs a `## De-identification` section — required, not optional. Which fields are removed, which are transformed and how, where synthetic test data comes from. Template in [`docs/data-privacy.md`](../../../docs/data-privacy.md).
+
+If the user doesn't know yet, leave it stubbed and flag it. A wrong process documented as correct is worse than an obvious gap.
+
+### 10. Verify and hand back
+
+Run the `verify` mode checklist below, then report plainly: what is set up, what was skipped and why, what still needs a human. Credential injection and de-identification are the two that usually do.
+
+On a project with existing code, recommend a baseline security audit (`/security-audit full`) before new work starts — it surfaces pre-existing vulnerabilities and gives the team a ranked fix list. Recommend it; don't run it unasked, since it's a substantial pass.
+
+---
+
+## Mode: resync
+
+Installed skills and agents are copies, so they drift. Show what changed before touching anything.
+
+```bash
+git -C <standards> log --oneline -20              # what moved upstream
+git -C <standards> pull
+diff -rq ~/.claude/skills/ <standards>/.claude/skills/
+diff -rq .claude/agents/ <standards>/.claude/agents/
+```
+
+Sort the differences into three buckets and treat them differently:
+
+- **Upstream-only changes** — new or updated skills. Copy them in.
+- **Local modifications** — a deliberately customised project-local skill. Do **not** overwrite. Show the diff and let the user decide.
+- **Local-only files** — a project's own skills. Leave them alone.
+
+`.mcp.json` never auto-syncs. If new servers appeared upstream, name them and let the user pull them in with the right credential wiring.
+
+If the project imports `CLAUDE.md` rather than copying it, base-rule changes are already live — say so rather than implying action is needed. If it copied, diff against the recorded commit SHA.
+
+---
+
+## Mode: verify
+
+Read-only. Check each item by running it, not by looking for the file:
+
+- [ ] `/memory` lists `claude-standards/CLAUDE.md` — base rules loaded
+- [ ] The session answers "where do secrets live?" from base rules, not from guesswork
+- [ ] At least one skill appears and runs — `/release-notes` with no arguments is a safe read-only check
+- [ ] `.claude/agents/` has all three reviewers
+- [ ] `pre-commit run --all-files` passes
+- [ ] `gitleaks detect` clean on full history
+- [ ] `## De-identification` and `## Skill Configuration` present in the project `CLAUDE.md`
+- [ ] `grep -rn '<[A-Z_]*>' . --include="*.json" --include="*.md"` returns nothing committed
+
+Report what failed and what it means in practice — "the import didn't resolve, so no privacy or secrets rules are loaded" is the finding, not "step 3 incomplete".
+
+## Key guidelines
+
+- **Verify, don't assume.** The two silent failures are the reason this skill exists. A file being present is not evidence a rule is loaded.
+- **Merge, never overwrite.** Existing `CLAUDE.md`, settings, and customised skills represent decisions someone made.
+- **Ask for what the repo can't tell you.** Notion URLs, task prefixes, credential injection. Read branch names and stack yourself.
+- **Stop at the credential step if unsure.** Every other step here is reversible. That one isn't.
+- **Report gaps as gaps.** A stubbed de-identification section flagged out loud beats an invented one.
+
+## What not to do
+
+- Don't run end to end silently — several steps need the user's input
+- Don't hardcode a credential in `.mcp.json`, even temporarily
+- Don't overwrite a project-local skill during `resync` without showing the diff
+- Don't continue past a failed import verification
+- Don't invent a de-identification process, Notion URL, or task ID prefix
+- Don't report success on setup you didn't verify

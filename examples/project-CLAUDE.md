@@ -83,6 +83,12 @@ Key files:
 - **Staging URL:** <STAGING_URL>
 - **Task ID prefix:** `<PREFIX>-`
 
+### release-notes
+- **Release branch:** `main`
+- **Tag scheme:** `v<MAJOR>.<MINOR>.<PATCH>` | `<YYYY>.<MM>.<N>`
+- **Sprint board:** <NOTION_SPRINT_BOARD_URL> (optional — falls back to GitHub issues/PRs)
+- **Task ID prefix:** `<PREFIX>-`
+
 ### user-docs
 - **Output path:** `docs/user-guide.md`
 - **Audience:** <TARGET_AUDIENCE>

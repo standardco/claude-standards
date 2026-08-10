@@ -54,7 +54,7 @@ git clone https://github.com/standardco/claude-standards.git
 
 Ask where it should live: a submodule at `./claude-standards/` (version-pinned per project) or one shared clone for all their repos (simpler to update). The answer sets the import path in step 3.
 
-## Step 3 — Import the base rules, then prove it worked
+## Step 3 — Import the base rules (verified later, in Step 6)
 
 Add this as the **first line** of the project's `CLAUDE.md`, pointing wherever the repo actually landed:
 

@@ -112,12 +112,32 @@ Key files:
 - <Convention 1>
 - <Convention 2>
 
+## Requirements vs. implementation choices
+
+<!-- Optional, but add it as soon as this project has one value that came from a spec. -->
+<!-- Only list what you've confirmed. An unverified row here is worse than no row. -->
+
+**Confirmed requirements** — do not change without asking. Each is also marked at its
+definition site with a `SPEC REQUIREMENT` comment.
+
+| Value | Defined in | Source | What it means |
+|---|---|---|---|
+| `<VALUE>` | `<PATH>` | <spec / stakeholder / ticket ID> | <the constraint, in one line> |
+
+**Provenance unknown** — might be a requirement, might be a default someone picked. Treat as
+a requirement until someone establishes otherwise, then move the row up or delete it.
+
+| Value | Defined in | Who or what would know |
+|---|---|---|
+| `<VALUE>` | `<PATH>` | <person, ticket, or doc to check> |
+
 ## Prohibited patterns
 
 <!-- Things Claude must not do in this project. -->
 
 - Do not use `<BANNED_LIBRARY>` — we use `<PREFERRED_LIBRARY>` instead.
 - Do not modify `<SENSITIVE_FILE>` without a second review.
+- Do not change any value listed above under **Requirements vs. implementation choices**, or any value carrying a `SPEC REQUIREMENT` comment. Propose the change instead.
 
 ## Known gotchas
 

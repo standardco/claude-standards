@@ -78,6 +78,25 @@ Always review auto-mode output before merging. Auto-mode does not override the p
 
 ---
 
+## Spec requirements vs. implementation choices
+
+A configured value — a cron expression, a page size, a timeout, a retention window — looks equally tunable whether a stakeholder specified it or someone guessed it. The line of code says nothing either way.
+
+- **Check where a value came from before changing it as an optimisation.** If you can't establish its provenance, that's a question to raise, not a default to assume.
+- **Mark spec-derived values at the definition site** — that's where someone about to change one is actually looking. Documenting it elsewhere doesn't reach that moment.
+- **When changing a marked value looks warranted, propose it rather than doing it.** Bring the measurement; let a human confirm whether the constraint still holds.
+- **Label speculation as speculation** when writing it into a `CLAUDE.md`, a comment, or a handoff note. An unlabelled hypothesis reads as a settled recommendation a fortnight later, and the next session implements it as fact.
+
+```yaml
+# SPEC REQUIREMENT — do not change without asking. <where it came from, and what it means>
+```
+
+Record confirmed requirements in the project's `CLAUDE.md` — see [`examples/project-CLAUDE.md`](examples/project-CLAUDE.md). List only what you have actually confirmed. A padded list makes guesses look authoritative, which is the failure being prevented.
+
+None of this discourages optimisation. Measure, notice, propose. The check is on provenance, not on change.
+
+---
+
 ## Formatting rules
 
 - When composing emails or messages for me to copy-paste, use plain text without markdown blockquote formatting. Use `pbcopy` to place the text directly into the clipboard instead of displaying it in the terminal.

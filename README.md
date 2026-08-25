@@ -36,7 +36,7 @@ The setup above installs `/adopt-standards`. After that, adopting another projec
 
 ```
 /adopt-standards adopt      # full setup for a new or existing project
-/adopt-standards resync     # pull in changes after this repo is updated
+/adopt-standards resync     # pull in changes, and backfill the project's security files
 /adopt-standards verify     # read-only check that a setup still works
 ```
 

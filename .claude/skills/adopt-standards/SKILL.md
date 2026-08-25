@@ -304,7 +304,25 @@ Sort the differences into three buckets and treat them differently:
 
 A project's own `.mcp.json`, if it has one, is not managed by this repo and is never touched by `resync`.
 
-If the project imports `CLAUDE.md` rather than copying it, base-rule changes are already live — say so rather than implying action is needed. If it copied, diff against the recorded commit SHA.
+If the project imports `CLAUDE.md` rather than copying it, base-rule changes go live as soon as the standards clone is updated — say so rather than implying more action is needed. If it copied, diff against the recorded commit SHA.
+
+**With a submodule, commit the pointer.** `git -C <standards> pull` moves the submodule's working tree, but the parent repo still records the old commit until the submodule path is staged and committed. Leave it and the base rules revert on the next checkout and for everyone else who clones.
+
+### Security backfill — every resync, not only the first
+
+Skills and agents are the visible half of a resync. The half that matters more is invisible: the project's `.gitignore` and `.gitleaks.toml` were written by whichever version of step 1 was current when it adopted, and **they do not update themselves.** A project adopted before the enforcement layer existed has no `.gitleaks.toml` at all, so it is running on `.gitignore` alone — which is not the control.
+
+Re-run **steps 1a–1c** against the project. All three are safe to repeat: the `.gitignore` loop is `grep -qxF`-guarded, and `.gitleaks.toml` is merged rather than overwritten.
+
+1. **Re-detect the stack.** A project can gain one after adoption. Don't reuse what was detected the first time.
+2. **Establish the floor** for every stack now present.
+3. **Write or merge `.gitleaks.toml`.** Create it if absent. If the project has its own rules or allowlist, keep them and add the missing rules alongside.
+4. **Re-scan history with the project's own config** — `gitleaks detect --source . --verbose`.
+5. **Append missing floor entries** to `.gitignore` under the labelled header, then run the `git ls-files` tracked-path check.
+
+**Expect step 4 to find things on an established repo, and treat that as the backfill working.** The new rules see files the default rules passed over, so a credential committed long before the project adopted anything can surface here for the first time. It is not a regression and the resync did not introduce it. Handle it as in step 1: rotate first, assume compromised, then clean history.
+
+**Report what actually changed** — which floor entries were added, whether `.gitleaks.toml` was created or merged, and what the re-scan found. "Resync complete" is not a useful report when the point of the run was to change what the repo enforces.
 
 ---
 
@@ -324,7 +342,7 @@ git remote -v | grep -q 'claude-standards' && echo "source repo"
 - [ ] At least one skill appears and runs — invoking this skill is itself proof
 - [ ] `.claude/agents/` has all three reviewers
 - [ ] `pre-commit run --all-files` passes
-- [ ] `.gitleaks.toml` exists at the project root and carries both rules
+- [ ] `.gitleaks.toml` exists at the project root and carries both rules — if it's absent the project adopted before the enforcement layer existed, which is a `resync` away, not a re-adoption; say that rather than reporting a bare failure
 - [ ] `gitleaks detect` clean on full history **using the project's own config** — confirm it resolved that file rather than falling back to the defaults, since a missing config produces a pass, not an error
 - [ ] The project's own `.gitignore` contains the credential floor from step 1a **plus every stack block whose marker is present** — `grep -c` against the file, **not** `git check-ignore`, which a machine-wide `~/.config/git/ignore` can satisfy on your machine and nobody else's. Re-run the stack detection here rather than trusting that adoption ran it; a project can gain a stack after it was adopted
 - [ ] `git ls-files` shows none of those paths already tracked — ignoring a tracked file changes nothing

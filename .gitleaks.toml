@@ -1,0 +1,43 @@
+# Secret scanning rules for claude-standards itself.
+#
+# This repo mandates path-keyed credential rules for every project that adopts
+# it, so it runs the same rules it requires. Adopting projects get their own
+# generated equivalent via /adopt-standards — this file is not copied to them.
+#
+# Why path-keyed rules exist at all: gitleaks' default rules match credentials
+# that have a recognisable shape (`ghp_...`, AWS key IDs). They do not match
+# opaque high-entropy values — a storage-account key, a secret_key_base, a
+# database passphrase — in any file, including a plain .env. Those are most of
+# what our projects actually hold. Detecting the *secret* is not solvable;
+# detecting that a file we have declared credential-bearing is being committed
+# with values in it is trivial, and it fails the commit.
+#
+# See docs/secrets.md for where this sits in the layered controls.
+
+# Matches the hook revision pinned in .pre-commit-config.yaml. Without it,
+# an older gitleaks silently ignores syntax it doesn't understand.
+minVersion = "8.30.0"
+
+[extend]
+useDefault = true
+
+# A declared credential-bearing file, committed with an assigned value.
+#
+# Keys with empty values do not fire, so a committed .env.example stays clean.
+# `.env.example` does not match `\.env$`, so it is not covered by this rule at
+# all. The optional `export ` prefix covers direnv's .envrc.
+[[rules]]
+id = "credential-file-with-value"
+description = "A credential-bearing file is being committed with values in it"
+path = '''(^|/)(\.env|\.env\.local|\.envrc|\.netrc|\.npmrc|\.pypirc|\.Renviron|local_settings\.py|secrets\.toml)$'''
+regex = '''(?m)^\s*(export\s+)?[^#\s][^\r\n]*=\s*\S+'''
+
+# Paths that must never be committed, whatever they contain.
+#
+# No `regex` key: the path match alone is the finding. These are files whose
+# mere presence in a commit is the problem — a Rails master key, a Claude Code
+# permission allowlist, a console transcript, a private key.
+[[rules]]
+id = "never-commit-path"
+description = "This path must never be committed"
+path = '''(^|/)(\.claude/settings\.local\.json|\.httr-oauth|\.RData|\.Rhistory|\.Rapp\.history|\.byebug_history|\.irb_history)$|\.(pem|key|p12|pfx)$'''

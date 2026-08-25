@@ -70,6 +70,24 @@ No single mechanism protects a credential. These are four layers with different 
 
 A credential can be correctly gitignored, untracked, absent from history — and still sit in plaintext on disk in violation of layer 1. Layer 3 working as designed is not evidence that anything is safe.
 
+### What the default rules do and don't catch
+
+Path rules don't replace the shape-based ones — `useDefault = true` keeps the whole built-in set, including `generic-api-key`, the "this looks like it could be a password" heuristic. That rule is **keyword-gated and then entropy-checked**: it needs a credential-ish identifier near the value *and* enough randomness. Same random 40-character value, four placements:
+
+| In the file | Caught by the defaults |
+|---|---|
+| `password = "<40 random chars>"` | yes — `generic-api-key` |
+| `some_value = "<40 random chars>"` | no — identical entropy, unremarkable name |
+| `db_conn = "postgres://user:<40 random>@host/db"` | no — a real password, but `db_conn` doesn't read as a secret |
+| `weak_password = "abcabcabcabcabc"` | no — keyword present, entropy too low |
+
+So the two layers cover different ground and neither subsumes the other:
+
+- **`generic-api-key`** reaches the whole codebase and catches the well-named case. Broad, heuristic, and the noisiest default rule.
+- **Path rules** reach only declared paths, and catch any value there regardless of naming or entropy. Narrow, deterministic.
+
+When `generic-api-key` fires on a test fixture or seed file, scope an `[allowlist]` entry to that path in the project's `.gitleaks.toml`. Do not disable the rule — losing it costs the only coverage that reaches files nobody thought to declare.
+
 ## Pre-commit scanning
 
 Every repo must have a secret-scanning pre-commit hook configured at `git init` time. We use [gitleaks](https://github.com/gitleaks/gitleaks).

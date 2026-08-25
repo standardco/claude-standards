@@ -129,7 +129,8 @@ This surfaces pre-existing vulnerabilities and gives the team a prioritized fix 
 
 `/adopt-standards resync` handles this. What it's working around:
 
-- **Imported `CLAUDE.md`** — already current, nothing to do.
+- **Imported `CLAUDE.md`** — current as soon as the standards clone is updated. With a submodule, commit the pointer afterwards or it reverts on the next checkout.
 - **Submodule** — `git submodule update --remote`.
 - **Copied files** — skills and agents are snapshots. `resync` diffs them against upstream and separates genuine upstream changes from your deliberate local modifications, so a customised skill doesn't get silently clobbered.
+- **The project's own security files** — `.gitignore` and `.gitleaks.toml` live in the project and were written by whichever version of step 1 was current when it adopted. They don't update themselves, so `resync` re-runs the credential floor, creates or merges `.gitleaks.toml`, and re-scans history with the project's own rules. Expect that scan to surface things on an older repo: the new rules see files the defaults passed over, including credentials committed long before the project adopted anything.
 - **A project's own `.mcp.json`** — not managed by this repo, and never touched by `resync`.

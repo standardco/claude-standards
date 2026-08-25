@@ -22,6 +22,7 @@ You don't need to read anything first, and you don't need to be at Standard Co. 
 | `CLAUDE.md` | Base instructions every project inherits |
 | `ONBOARDING.md` | Bootstrap for a developer setting this up for the first time |
 | `.pre-commit-config.yaml` | Secret scanning — the hook this repo requires and runs on itself |
+| `.gitleaks.toml` | Path-keyed credential rules — what the hook enforces beyond the defaults |
 | `.claude/settings.json` | Default Claude settings (non-secret) |
 | `.claude/agents/` | Parallel code-review subagents |
 | `.claude/commands/` | Shared slash commands |

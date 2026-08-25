@@ -3,7 +3,7 @@ name: adopt-standards
 description: Wire a project to inherit claude-standards — base instructions, review agents, and skills — then verify the standards are actually in effect; also re-syncs and audits an existing setup
 when_to_use: Use when setting up a new or existing project to use claude-standards ("adopt the standards", "set this repo up with our Claude config"), when re-syncing after claude-standards changes, or when checking whether a project's setup is actually working
 argument-hint: "[adopt | resync | verify]"
-allowed-tools: Bash(git clone *) Bash(git submodule *) Bash(git log *) Bash(git rev-parse *) Bash(git status *) Bash(git remote *) Bash(diff *) Bash(cp *) Bash(mkdir *) Bash(ls *) Bash(grep *) Bash(cat *) Bash(gitleaks *) Bash(pre-commit *) Read Write Edit Grep Glob
+allowed-tools: Bash(git clone *) Bash(git submodule *) Bash(git log *) Bash(git rev-parse *) Bash(git status *) Bash(git remote *) Bash(git ls-files *) Bash(diff *) Bash(cp *) Bash(mkdir *) Bash(ls *) Bash(find *) Bash(grep *) Bash(cat *) Bash(gitleaks *) Bash(pre-commit *) Read Write Edit Grep Glob
 ---
 
 # Adopt claude-standards
@@ -53,27 +53,109 @@ gitleaks detect --source . --verbose      # full history, not just the working t
 
 A clean working tree says nothing about history — deleted secrets persist in old commits, which is the case this step exists to catch. On a hit: **rotate first** (assume compromised), then clean history with `git filter-repo` or BFG, force-push, tell the team to re-clone. Do not continue with live leaked credentials.
 
-Then make sure `.gitignore` carries the full credential-bearing set. Append only what's missing — never copy this repo's `.gitignore` over the project's own:
+**A clean run is not coverage.** gitleaks' default rules match credentials with a recognisable shape — `ghp_…`, AWS key IDs. They do not match opaque high-entropy values: a storage-account key, a `secret_key_base`, a database passphrase. Those pass clean in a `.env` exactly as they do anywhere else, and they are most of what our projects hold. Steps 1a–1c below exist because of that gap.
+
+#### 1a. Establish the credential floor
+
+The sorting test is **could a secret end up inside this file** — not *is this file junk*. Files that only clutter a repo are hygiene, and they are handled separately in step 1c.
+
+**Universal**, whatever the stack:
+
+```
+.env  .env.local  .envrc  .netrc  .claude/settings.local.json
+*.pem  *.key  *.p12  *.pfx
+.python_history  .node_repl_history  .psql_history  .mysql_history
+```
+
+**Then add the block for every stack present.** Apply a block if its marker appears **anywhere in the repo**, not only at the root — a nested sub-project is the common case, and the root of such a repo often holds loose scripts with no coverage of their own.
+
+| Stack | Marker anywhere in the repo | Floor entries |
+|---|---|---|
+| Ruby / Rails | `Gemfile` | `.bundle/config` `.byebug_history` `.irb_history` `.powenv` `config/initializers/secret_token.rb` |
+| Python | `pyproject.toml`, `requirements*.txt` | `.pypirc` `local_settings.py` `.streamlit/secrets.toml` |
+| Node | `package.json` | `.npmrc` |
+| R | `*.Rproj`, `renv.lock`, `DESCRIPTION`, any `*.R` / `*.Rmd` | `.Renviron` `.Rhistory` `.Rapp.history` `.RData` `.RDataTmp` `.Ruserdata` `.httr-oauth` `rsconnect/` |
+
+Why several of these are not obvious:
+
+- **A bare `.env`, not only `.env.local`.** It is the highest-traffic floor file in most stacks. `.env` is permitted for non-secret local config, so the file will exist — and "one connection string, temporarily" is how it stops being non-secret.
+- **`config/master.key` needs no entry of its own.** The universal `*.key` has no slash, so it matches at any depth, covering it and `config/credentials/*.key`. Confirm that rather than assuming it.
+- **REPL and debugger transcripts** record whatever was typed, including a key pasted into a `setenv` or an `ENV[...]=`. `.byebug_history` and `.Rhistory` are the ones that write to the **working directory** by default, which is what makes the class worth covering; the `$HOME` ones reach a repo via container home directories and `HISTFILE` overrides.
+- **`.envrc`** is direnv, not a Python file — it holds `export KEY=…` and is as common in Ruby work.
+- **`.claude/settings.local.json`.** Approving a command with a token inline writes that token permanently into the permission allowlist, where it doesn't look like a credential to a scanner. A real pattern in our own repos, not a hypothetical.
+- **`.npmrc` needs a judgement call.** Many projects legitimately commit a token-free one for registry config. If this project does, un-ignore it deliberately with `!.npmrc` and confirm it carries no `_authToken` — don't leave the ignore in place and let someone `--force` past it later.
+
+**The floor is a floor, not a ceiling.** These blocks cover the stacks we have hit so far; the next stack is not in the table. Look at what this repo actually holds — config files named for a service, anything a tool writes into the working directory, anything a teammate would be alarmed to see on GitHub — and add what's missing. Name anything you added beyond the table in the step 10 hand-back, so the report says what the project is protected against rather than that the procedure ran.
+
+#### 1b. Write the enforcement layer, then re-scan
+
+The floor drives a `.gitleaks.toml` at the project root. **This is the control** — it fails the commit. Two rules: one for files that are fine empty but not filled, one for files that must never appear at all.
+
+```toml
+minVersion = "8.30.0"          # match the hook rev pinned above
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "credential-file-with-value"
+description = "A credential-bearing file is being committed with values in it"
+path = '''(^|/)(\.env|\.env\.local|\.envrc|\.netrc|\.npmrc|\.pypirc|\.Renviron|local_settings\.py|secrets\.toml)$'''
+regex = '''(?m)^\s*(export\s+)?[^#\s][^\r\n]*=\s*\S+'''
+
+[[rules]]
+id = "never-commit-path"
+description = "This path must never be committed"
+path = '''(^|/)(\.claude/settings\.local\.json|\.httr-oauth|\.RData|\.Rhistory|\.Rapp\.history|\.byebug_history|\.irb_history)$|\.(pem|key|p12|pfx)$'''
+```
+
+Adjust both `path` expressions to the stacks you detected. `useDefault = true` keeps the built-in provider rules — this adds coverage, it does not replace it. The second rule has no `regex`; the path match alone is the finding. Requiring `\S+` after `=` means an empty-valued key doesn't fire, so a committed `.env.example` stays clean — and `.env.example` doesn't match `\.env$` in the first place.
+
+**Merge into an existing `.gitleaks.toml`, never overwrite it.** A project that already has one has rules and allowlists someone decided on.
+
+The hook needs no configuration to find this. gitleaks resolves `(target path)/.gitleaks.toml` fourth in its precedence order, and the pre-commit hook runs from the repo root, so the file is picked up with no `--config`, no `args:` entry, and no `GITLEAKS_CONFIG`.
+
+```bash
+gitleaks detect --source . --verbose      # again — now with the project's own rules
+```
+
+**Re-running is the point, not a formality.** The new rules see files the default rules passed over, so this is the run that catches a `.Renviron` or a `secret_token.rb` committed years ago. Treat a hit exactly like the step 1 hit: rotate first, then clean history.
+
+#### 1c. Write `.gitignore` — floor first, hygiene below
+
+This layer reduces the accident rate. It is **not** the control: it does nothing for a file git already tracks, `git add -f` overrides it silently, and it leaves the credential on disk. Append only what's missing — never copy this repo's `.gitignore` over the project's own:
 
 ```bash
 # Newline-safe: a file with no trailing newline would otherwise fuse the
 # last existing entry with the first appended one.
 [ -f .gitignore ] && [ -n "$(tail -c1 .gitignore)" ] && printf '\n' >> .gitignore
 
-for p in '.env' '.env.*' '!.env.example' '!.env.sample' \
-         '.claude/settings.local.json' \
-         '*.pem' '*.key' '*.p12' '*.pfx'; do
-  grep -qxF "$p" .gitignore 2>/dev/null || printf '%s\n' "$p" >> .gitignore
-done
+add() {
+  for p in "$@"; do
+    grep -qxF "$p" .gitignore 2>/dev/null || printf '%s\n' "$p" >> .gitignore
+  done
+}
+
+add '# --- credential floor (claude-standards) — enforced by .gitleaks.toml' \
+    '.env' '.env.*' '!.env.example' '!.env.sample' '.envrc' \
+    '.claude/settings.local.json' \
+    '*.pem' '*.key' '*.p12' '*.pfx' '.netrc' \
+    '.python_history' '.node_repl_history' '.psql_history' '.mysql_history'
+# ... plus the stack blocks from 1a ...
+add '# --- end credential floor'
 ```
 
-Each of these earns its place:
+The header earns its place: without it, a developer tidying the file sees no difference between `.Renviron` and `.Rproj.user/`, and verify has nothing to locate.
 
-- **A bare `.env`, not only `.env.local`.** The base rules permit `.env` for non-secret local config, so the file will exist — and "one connection string, temporarily" is how it stops being non-secret.
-- **`.claude/settings.local.json`.** Approving a command with a token inline writes that token permanently into the permission allowlist, where it doesn't look like a credential to a scanner. This is a real pattern in our own repos, not a hypothetical.
-- **Key and cert patterns.** Cheap to ignore, expensive to un-commit.
+**Hygiene goes below that block**, and it's worth being generous — build artefacts, editor state, `.Rproj.user/`, OS files. [`github/gitignore`](https://github.com/github/gitignore) is the reference; it's CC0, so copying is unrestricted. Name the template you used for the detected stack in the step 10 hand-back. Don't vendor copies into this repo, and don't let verify assert those patterns — we can't pin which revision someone appended.
 
-**Verify by reading `.gitignore` itself, never with `git check-ignore`.** A developer's `~/.config/git/ignore` can cover these patterns machine-wide, so `git check-ignore` reports them ignored on that machine while the project protects nothing. The teammate who clones it has no such file, and the point of putting the patterns in the repo is that they travel.
+**`.gitignore` does nothing for a file git is already tracking.** Check, and untrack anything it finds before continuing:
+
+```bash
+git ls-files | grep -iE '(^|/)(\.env|\.envrc|\.Renviron|\.npmrc|\.netrc|\.pypirc|local_settings\.py|secrets\.toml|\.RData|.*history)$|\.(pem|key|p12|pfx)$'
+```
+
+**Verify by reading `.gitignore` itself, never with `git check-ignore`.** A developer's `~/.config/git/ignore` can cover these patterns machine-wide, so `git check-ignore` reports them ignored on that machine while the project protects nothing. This is not a hypothetical: a machine-wide `**/.claude/settings.local.json` will also silently keep that file out of `git add -A`, so a test that "nothing got committed" proves nothing either. The teammate who clones has no such file, and the point of putting patterns in the repo is that they travel.
 
 ### 2. Place the repo
 
@@ -242,8 +324,10 @@ git remote -v | grep -q 'claude-standards' && echo "source repo"
 - [ ] At least one skill appears and runs — invoking this skill is itself proof
 - [ ] `.claude/agents/` has all three reviewers
 - [ ] `pre-commit run --all-files` passes
-- [ ] `gitleaks detect` clean on full history
-- [ ] The project's own `.gitignore` contains every pattern from step 1 — `grep -c` against the file, **not** `git check-ignore`, which a machine-wide `~/.config/git/ignore` can satisfy on your machine and nobody else's
+- [ ] `.gitleaks.toml` exists at the project root and carries both rules
+- [ ] `gitleaks detect` clean on full history **using the project's own config** — confirm it resolved that file rather than falling back to the defaults, since a missing config produces a pass, not an error
+- [ ] The project's own `.gitignore` contains the credential floor from step 1a **plus every stack block whose marker is present** — `grep -c` against the file, **not** `git check-ignore`, which a machine-wide `~/.config/git/ignore` can satisfy on your machine and nobody else's. Re-run the stack detection here rather than trusting that adoption ran it; a project can gain a stack after it was adopted
+- [ ] `git ls-files` shows none of those paths already tracked — ignoring a tracked file changes nothing
 - [ ] `## De-identification` and `## Skill Configuration` present in the project `CLAUDE.md`
 - [ ] `git grep -nE '<[A-Z_]{2,}>' -- '*.json' '*.md'` returns nothing committed
 
@@ -272,6 +356,12 @@ Tell the user to quit and reopen Claude Code in the project directory. If the im
 Not verification: asking the setup session, reading the import line back out of `CLAUDE.md`, or `/memory` — which is a picker for editing memory files, not a list of what loaded. Avoid "where do secrets live?" as the question; a model may answer 1Password from general knowledge regardless.
 
 Relative imports above the project root (`@../`, required by the shared-clone layout) are the likeliest to fail and the reason this check exists.
+
+### Three things this checklist cannot tell you
+
+- **With more than one `.gitignore`, a root `grep` is wrong in both directions.** A nested `.gitignore` protects its own directory and nothing above it. Grepping the root file reports a miss for a pattern a subdirectory already covers, and reports nothing at all about a subdirectory that is the *only* thing providing coverage — which is a real gap wearing the appearance of one. Find every `.gitignore` in the repo, read each, and say which directory each one protects.
+- **A passing gitleaks run means the declared paths are covered, not that every credential file was declared.** The path rules only know what step 1a named. A credential file nobody thought of produces a clean scan.
+- **These checks validate the procedure, not the project.** The pattern check can only find patterns the floor names, so a stack that isn't in the step 1a table passes clean with nothing covered. Before signing off, look at the repo itself and ask what in *this* codebase holds a credential — that question is the check; the checklist is just the part that can be automated.
 
 ### Reporting
 

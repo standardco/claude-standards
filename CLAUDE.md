@@ -23,6 +23,7 @@ See [`docs/data-privacy.md`](docs/data-privacy.md) for de-identification rules a
 - `.env` is acceptable for local non-secret config (ports, feature flags). Never use it for real credentials.
 - No secrets in Claude prompts, chat history, commits, or comments.
 - Pre-commit hooks scan for leaked secrets. Set this up at `git init` time — not later.
+- Scanners catch credentials with a recognisable shape, not opaque ones — a storage key or a `secret_key_base` passes clean in a plain `.env`. So credential-bearing paths are declared in the project's `.gitleaks.toml` and enforced there. `.gitignore` reduces accidents; it is not the control.
 - Credentials are injected at runtime via the 1Password CLI and AWS SSM. They are never stored in the repo or on disk.
 
 See [`docs/secrets.md`](docs/secrets.md) for the full runbook.

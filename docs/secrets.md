@@ -46,13 +46,29 @@ Secrets are pulled from AWS Secrets Manager via AWS SSM Parameter Store or Secre
 
 ## .env files
 
-`.env` is for local non-secret config only. It should be safe to commit in a public repo.
+`.env` is for local non-secret config — ports, feature flags, log levels. It is **gitignored anyway.**
 
-- `.env` → committed, non-secret values
+- `.env` → gitignored, local values
+- `.env.example` → committed if the project keeps one: keys with empty or dummy values, no real credentials
 - `.env.local` → gitignored, anything you don't want shared
 - `.env.1password` → gitignored, references to 1Password items (not the secrets themselves)
 
+Ignoring a file we permit to be non-secret looks redundant, and isn't. The permission is what guarantees the file exists in the project, and a file that exists is a file someone eventually adds one connection string to. The ignore costs nothing; the alternative depends on that never happening.
+
 Never put a real credential in `.env`. If it's a credential, it goes in 1Password and gets injected at runtime.
+
+## Layered controls
+
+No single mechanism protects a credential. These are four layers with different failure modes, in the order they matter:
+
+1. **The credential is never in the working tree.** Runtime injection via `op run` or AWS Secrets Manager. This is the actual control — everything below is damage limitation for when it isn't followed.
+2. **`.gitleaks.toml` path rules block the commit.** Credential-bearing paths are declared, and committing one with values in it fails the pre-commit hook. This is the enforcement boundary.
+3. **`.gitignore` reduces the accident rate.** It is not a security control. It has no effect on a file git already tracks, `git add -f` overrides it silently, its effective state depends on un-versioned per-machine config, and the credential is still sitting on disk either way.
+4. **Rotation.** The only thing that works once a value is exposed.
+
+**Why layer 2 is keyed on paths rather than on content.** gitleaks' default rules match credentials with a recognisable shape — `ghp_…`, AWS key IDs — and they work well. They do not match opaque high-entropy values: a storage-account key, a `secret_key_base`, a database passphrase. Those pass clean in any file type, a plain `.env` included. Recognising the secret is not a solvable problem. Recognising that a file we declared credential-bearing is being committed with values in it is trivial, so that is what the rules do.
+
+A credential can be correctly gitignored, untracked, absent from history — and still sit in plaintext on disk in violation of layer 1. Layer 3 working as designed is not evidence that anything is safe.
 
 ## Pre-commit scanning
 
@@ -69,6 +85,8 @@ repos:
     hooks:
       - id: gitleaks
 ```
+
+Pair it with a `.gitleaks.toml` at the repo root declaring the project's credential-bearing paths — that's layer 2 above, and it's what catches the values the default rules can't see. `/adopt-standards` writes one. gitleaks discovers it automatically from the repo root, so the hook needs no extra configuration.
 
 If the hook fires, do **not** use `--no-verify` to bypass it. Fix the leak, rotate the exposed credential, then commit.
 

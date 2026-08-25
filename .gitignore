@@ -1,13 +1,36 @@
-# Environment and secrets
+# --- credential floor (claude-standards) — enforced by .gitleaks.toml
+#
+# The same floor /adopt-standards writes into every project. No stack blocks
+# apply here: this repo ships documentation and skills, no application code.
+
 # Every .env variant is ignored. The base CLAUDE.md permits .env for non-secret
 # local config, which is exactly how a credential ends up in one.
 .env
 .env.*
 !.env.example
 !.env.sample
+.envrc
+.netrc
 
-# Claude Code local settings
+# Approving a command with a token inline writes that token permanently into
+# the permission allowlist, where it doesn't look like a credential to a scanner.
 .claude/settings.local.json
+
+# Keys and certificates. *.key has no slash, so it matches at any depth —
+# config/master.key and config/credentials/*.key included.
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Console transcripts record whatever was typed, including a pasted key.
+.python_history
+.node_repl_history
+.psql_history
+.mysql_history
+# --- end credential floor
+
+# Hygiene below this line — clutter, not credentials.
 
 # Dependencies
 node_modules/
@@ -15,9 +38,3 @@ node_modules/
 # OS files
 .DS_Store
 Thumbs.db
-
-# Keys and certificates
-*.pem
-*.key
-*.p12
-*.pfx

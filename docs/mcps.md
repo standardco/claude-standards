@@ -60,10 +60,11 @@ Literal `<PLACEHOLDER>` values are not a mechanism. They leave no working path, 
 
 ## Building a server
 
-Everything above is about servers you consume. When the answer is "it doesn't exist yet" and you're writing one, the procedure is [`/mcp-server`](../.claude/skills/mcp-server/SKILL.md). It's written as an audit, because the questions that catch a broken server are the same ones that specify a working one — run it while building, not only afterwards.
+Everything above is about servers you consume. When the answer is "it doesn't exist yet" and you're writing one — almost always a read-only server over an API one of our projects already exposes — the procedure is [`/mcp-server`](../.claude/skills/mcp-server/SKILL.md): `create` to build one, `audit` to check it and keep checking it.
 
-Two rules from it are worth stating here, because they change the decision above rather than just the implementation:
+Three rules from it are worth stating here, because they change the decision above rather than just the implementation:
 
+- **Survey the upstream API before promising anything.** Which parameters actually filter, what paginates, whether a total count exists. Every gap becomes work on our side and a way for the server to mislead, so it belongs in the decision to build one at all — not in the implementation.
 - **Read-only by default.** A server that only reads is a far smaller thing to review, credential, and host than one that can write. Treat a write capability as a separate decision with a separate approval, not a later commit.
 - **Re-audit when the upstream API changes, not when your code does.** Most of the ways one of these servers goes wrong involve no change on our side at all: a filter silently stops applying, a registry gains rows, an error string starts meaning something new. Nothing errors, and the tool keeps answering.
 

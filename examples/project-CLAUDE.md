@@ -107,10 +107,13 @@ Key files:
 
 ### mcp-server
 <!-- Only if this project *is* an MCP server. Remove otherwise. -->
+- **Upstream project:** `<REPO_OR_PATH>` — read its routes/controllers for the capability survey
 - **Upstream API:** <BASE_URL> — credential in <1Password item | SSM path>, never the value
 - **Endpoints in scope:** <PATH>, <PATH>
 - **Read-only:** yes (default) — changing this is a decision, not a commit
-- **Live-API audit:** permitted with <CREDENTIAL_SOURCE> | not permitted
+- **Live API access:** permitted with <CREDENTIAL_SOURCE> | not permitted
+- **Known upstream gaps:** <e.g. no server-side filter on PATH, no total count — filtered locally>
+- **Reference implementation:** <PATH_TO_EXISTING_SERVER> (optional)
 
 ## Conventions
 

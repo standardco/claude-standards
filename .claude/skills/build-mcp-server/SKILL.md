@@ -1,12 +1,12 @@
 ---
-name: mcp-server
+name: build-mcp-server
 description: Build and maintain a read-only MCP server over an existing project's API — survey what the upstream can actually do, design tools around it, and audit against the failure taxonomy that produces confidently wrong answers
 when_to_use: Use when writing an MCP server against a project that already has an API ("wrap this API in an MCP", "scaffold an MCP server"), when reviewing one before or after it ships, and whenever the upstream API it wraps has changed
 argument-hint: "[create | audit]"
 allowed-tools: Bash(git log *) Bash(git diff *) Bash(git status *) Bash(git ls-files *) Bash(git grep *) Bash(npm *) Bash(npx *) Bash(node *) Bash(ls *) Bash(find *) Bash(grep *) Bash(cat *) Bash(mkdir *) Read Write Edit Grep Glob Task
 ---
 
-# MCP server
+# Build an MCP Server
 
 Build and maintain a **read-only MCP server over an existing project's API** — the shape we keep building. This is the other half of [`docs/mcps.md`](../../../docs/mcps.md), which covers when to reach for an MCP, connector versus `.mcp.json`, and how the credential is handled. That doc is about *consuming* servers. This is about writing and keeping one.
 

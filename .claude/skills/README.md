@@ -28,7 +28,7 @@ See [`docs/adoption.md`](../../docs/adoption.md) for how to set up the `## Skill
 | `/security-audit` | "run a security audit" | Runs `security-auditor` in five parallel scoped passes, consolidates findings into a ranked report with proposed fixes |
 | `/end-of-day` | "clocking out", "wrapping up for the day" | Sweeps for uncommitted and ephemeral state, writes a durable handoff note outside the repo, names tomorrow's first action |
 | `/handoff` | "notes for the other session" | Summarizes this session's work as a briefing for a coupled project's Claude session and copies it to the clipboard |
-| `/mcp-server` | "wrap this API in an MCP", "audit this MCP server" | Builds a read-only MCP server over an existing project's API, and audits one against the failure taxonomy that produces confidently wrong answers |
+| `/build-mcp-server` | "wrap this API in an MCP", "audit this MCP server" | Builds a read-only MCP server over an existing project's API, and audits one against the failure taxonomy that produces confidently wrong answers |
 
 ### sprint-recap
 
@@ -123,7 +123,7 @@ Distinct from `/end-of-day`: that one writes a durable note for tomorrow's human
 - Deployment URLs per environment
 - Clipboard command if not macOS `pbcopy`
 
-### mcp-server
+### build-mcp-server
 
 The build-side counterpart to [`docs/mcps.md`](../../docs/mcps.md), which covers only when to *reach for* an MCP. Scoped to read-only servers over an existing API, which is the shape we keep building.
 
@@ -135,7 +135,7 @@ Organised around one failure mode: the server returns a plausible `200` for a re
 
 Carries no file tree, no SDK code, and no package names. Those date, and a stale sample in a standards repo gets copied rather than questioned. Ships no server list and names no API, in keeping with e593551.
 
-**Usage:** `/mcp-server [create | audit]` — inferred from whether a server exists yet.
+**Usage:** `/build-mcp-server [create | audit]` — inferred from whether a server exists yet.
 
 **Project context needed** (in `CLAUDE.md` → `## Skill Configuration`):
 - The upstream project and where its source is

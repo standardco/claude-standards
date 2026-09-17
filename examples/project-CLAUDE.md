@@ -105,7 +105,7 @@ Key files:
 - **Deployment URLs:** production `<PROD_URL>`, staging `<STAGING_URL>`
 - **Clipboard command:** `pbcopy` (macOS default) | `xclip -selection clipboard` | `wl-copy`
 
-### mcp-server
+### build-mcp-server
 <!-- Only if this project *is* an MCP server. Remove otherwise. -->
 - **Upstream project:** `<REPO_OR_PATH>` — read its routes/controllers for the capability survey
 - **Upstream API:** <BASE_URL> — credential in <1Password item | SSM path>, never the value

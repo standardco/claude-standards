@@ -2,7 +2,7 @@
 
 This repo has an opinion on **when** to reach for an MCP. It does not ship a server list.
 
-This page covers *consuming* servers. For *writing* one — the read-only-over-an-existing-API case we keep hitting — see [`/mcp-server`](../.claude/skills/mcp-server/SKILL.md).
+This page covers *consuming* servers. For *writing* one — the read-only-over-an-existing-API case we keep hitting — see [`/build-mcp-server`](../.claude/skills/build-mcp-server/SKILL.md).
 
 Server definitions are project-specific — which database, which host, which credential — and a shared template of them is worse than nothing: it duplicates connectors your Claude account may already provide, and every duplicate is a credential to store, rotate, and keep out of git. Adopting `claude-standards` no longer installs a `.mcp.json`. Add servers when a project actually needs one.
 
@@ -60,7 +60,7 @@ Literal `<PLACEHOLDER>` values are not a mechanism. They leave no working path, 
 
 ## Building a server
 
-Everything above is about servers you consume. When the answer is "it doesn't exist yet" and you're writing one — almost always a read-only server over an API one of our projects already exposes — the procedure is [`/mcp-server`](../.claude/skills/mcp-server/SKILL.md): `create` to build one, `audit` to check it and keep checking it.
+Everything above is about servers you consume. When the answer is "it doesn't exist yet" and you're writing one — almost always a read-only server over an API one of our projects already exposes — the procedure is [`/build-mcp-server`](../.claude/skills/build-mcp-server/SKILL.md): `create` to build one, `audit` to check it and keep checking it.
 
 Three rules from it are worth stating here, because they change the decision above rather than just the implementation:
 

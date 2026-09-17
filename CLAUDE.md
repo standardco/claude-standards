@@ -34,12 +34,13 @@ See [`docs/secrets.md`](docs/secrets.md) for the full runbook.
 
 - Default to MCP for any tool used more than once by two or more devs.
 - If the vendor ships an official MCP (GitHub, Notion, Slack, Linear), use it instead of raw HTTP.
-- Skip MCP only when: it doesn't exist yet, it's a one-shot dev inspection, or the API is public and unauthenticated.
+- Skip MCP only when: it's a one-shot dev inspection, or the API is public and unauthenticated. *"No server exists yet"* counts only for a third-party API — for one of ours, writing one is the answer.
 - Check for a Claude account connector before wiring a server — no credential to manage where one exists.
 - Where you do need a server, its definition lives in that project's `./.mcp.json` — team-shared and version-controlled, not in `.claude/`. This repo ships no server template.
 - If you find yourself reaching for raw HTTP twice against the same service, that's a signal to add an MCP.
+- **Servers we write are read-only by default.** A write capability is a separate decision, not a later commit. Re-audit one whenever the *upstream* API changes — that is when these break, with no change on our side and nothing raising an error.
 
-See [`docs/mcps.md`](docs/mcps.md) for the decision rules and rationale.
+See [`docs/mcps.md`](docs/mcps.md) for the decision rules and rationale, and [`/build-mcp-server`](.claude/skills/build-mcp-server/SKILL.md) for writing and maintaining one.
 
 ---
 

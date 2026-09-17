@@ -71,7 +71,7 @@ Adopting this repo doesn't soften these. Full detail in [`docs/data-privacy.md`]
 
 ## Ownership
 
-This repo has an opinion on *when* to reach for an MCP, not on which servers you run — see [`docs/mcps.md`](docs/mcps.md). Server definitions are project-specific and live in each project's own `.mcp.json`, owned by one person there, with new entries added by PR.
+This repo has an opinion on *when* to reach for an MCP, and on *how to write one* over an API we already own — but not on which servers you run. See [`docs/mcps.md`](docs/mcps.md) and [`/build-mcp-server`](.claude/skills/build-mcp-server/SKILL.md). Server definitions are project-specific and live in each project's own `.mcp.json`, owned by one person there, with new entries added by PR.
 
 The repo wins. Don't sync it back to slides or wikis — update here and let downstream sources pull from it.
 

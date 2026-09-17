@@ -27,3 +27,13 @@ Consolidate findings before presenting them to me.
 2. Write a tight system prompt — one job, no overlap with existing agents.
 3. List only the tools the agent needs (default: `Read`, `Grep`, `Glob`).
 4. Add a row to the table above.
+
+**A single `.md` file, directly in this directory.** Agents are discovered by filename. A subdirectory, or a file with no front matter, isn't discovered as anything — it sits here looking installed while doing nothing, and nothing reports it.
+
+**Everything in this directory travels.** `/adopt-standards` copies it wholesale into every project that adopts or resyncs:
+
+```bash
+cp -r <standards>/.claude/agents/* .claude/agents/
+```
+
+So a stray file here lands in every downstream repo. If what you have is a skill, it belongs in [`.claude/skills/`](../skills/); if it's notes, it belongs in `docs/`.

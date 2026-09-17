@@ -28,6 +28,7 @@ See [`docs/adoption.md`](../../docs/adoption.md) for how to set up the `## Skill
 | `/security-audit` | "run a security audit" | Runs `security-auditor` in five parallel scoped passes, consolidates findings into a ranked report with proposed fixes |
 | `/end-of-day` | "clocking out", "wrapping up for the day" | Sweeps for uncommitted and ephemeral state, writes a durable handoff note outside the repo, names tomorrow's first action |
 | `/handoff` | "notes for the other session" | Summarizes this session's work as a briefing for a coupled project's Claude session and copies it to the clipboard |
+| `/build-mcp-server` | "wrap this API in an MCP", "audit this MCP server" | Builds a read-only MCP server over an existing project's API, and audits one against the failure taxonomy that produces confidently wrong answers |
 
 ### sprint-recap
 
@@ -121,3 +122,24 @@ Distinct from `/end-of-day`: that one writes a durable note for tomorrow's human
 - Paired projects and their direction (producer or consumer)
 - Deployment URLs per environment
 - Clipboard command if not macOS `pbcopy`
+
+### build-mcp-server
+
+The build-side counterpart to [`docs/mcps.md`](../../docs/mcps.md), which covers only when to *reach for* an MCP. Scoped to read-only servers over an existing API, which is the shape we keep building.
+
+Organised around one failure mode: the server returns a plausible `200` for a request it didn't actually perform — a filter accepted and silently dropped, an entitlement filter answering `[]` rather than `403`, a result capped without saying so. Nothing errors, so review doesn't catch it and the author's own fixtures confirm it. The output is a wrong answer in someone's analysis, attributed to the system of record. Every item in the audit taxonomy is a defect we actually shipped.
+
+`create` starts where the work actually starts: **surveying what the upstream API can do**, from the upstream project's own source rather than its docs. Which filters exist, what paginates, whether any total is returned. That table is the design document — every gap in it becomes work on our side, because an endpoint that can't filter server-side forces local filtering, which is what drags in row caps, page-walking and completeness reporting. Tools are then designed as *questions*, not one-per-endpoint. Shapes get confirmed with a live call, never from the source, because the two disagree in ways that fail silently.
+
+`audit` is the same taxonomy applied backwards, and an **upstream API change is its trigger** — most of these describe a server that was correct when written and stopped being correct when something upstream moved, with no line of our code changing.
+
+Carries no file tree, no SDK code, and no package names. Those date, and a stale sample in a standards repo gets copied rather than questioned. Ships no server list and names no API, in keeping with e593551.
+
+**Usage:** `/build-mcp-server [create | audit]` — inferred from whether a server exists yet.
+
+**Project context needed** (in `CLAUDE.md` → `## Skill Configuration`):
+- The upstream project and where its source is
+- Upstream API base URL and where its credential lives
+- Endpoints in scope
+- Whether anything other than read-only is permitted (defaults to no)
+- Whether it may be run against the live API, and with which credential

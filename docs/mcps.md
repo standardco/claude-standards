@@ -2,6 +2,8 @@
 
 This repo has an opinion on **when** to reach for an MCP. It does not ship a server list.
 
+This page covers *consuming* servers. For *writing* one — the read-only-over-an-existing-API case we keep hitting — see [`/mcp-server`](../.claude/skills/mcp-server/SKILL.md).
+
 Server definitions are project-specific — which database, which host, which credential — and a shared template of them is worse than nothing: it duplicates connectors your Claude account may already provide, and every duplicate is a credential to store, rotate, and keep out of git. Adopting `claude-standards` no longer installs a `.mcp.json`. Add servers when a project actually needs one.
 
 ## Decision rules
@@ -55,6 +57,15 @@ op run --env-file=.env.1password -- claude
 `.env.1password` holds `op://` references rather than secrets, and is gitignored. Full runbook in [`secrets.md`](secrets.md).
 
 Literal `<PLACEHOLDER>` values are not a mechanism. They leave no working path, and the path of least resistance from there is pasting the real token in — which is how credentials end up committed.
+
+## Building a server
+
+Everything above is about servers you consume. When the answer is "it doesn't exist yet" and you're writing one, the procedure is [`/mcp-server`](../.claude/skills/mcp-server/SKILL.md). It's written as an audit, because the questions that catch a broken server are the same ones that specify a working one — run it while building, not only afterwards.
+
+Two rules from it are worth stating here, because they change the decision above rather than just the implementation:
+
+- **Read-only by default.** A server that only reads is a far smaller thing to review, credential, and host than one that can write. Treat a write capability as a separate decision with a separate approval, not a later commit.
+- **Re-audit when the upstream API changes, not when your code does.** Most of the ways one of these servers goes wrong involve no change on our side at all: a filter silently stops applying, a registry gains rows, an error string starts meaning something new. Nothing errors, and the tool keeps answering.
 
 ## Replacing a wrapper with an official MCP
 

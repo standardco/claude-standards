@@ -105,6 +105,13 @@ Key files:
 - **Deployment URLs:** production `<PROD_URL>`, staging `<STAGING_URL>`
 - **Clipboard command:** `pbcopy` (macOS default) | `xclip -selection clipboard` | `wl-copy`
 
+### mcp-server
+<!-- Only if this project *is* an MCP server. Remove otherwise. -->
+- **Upstream API:** <BASE_URL> — credential in <1Password item | SSM path>, never the value
+- **Endpoints in scope:** <PATH>, <PATH>
+- **Read-only:** yes (default) — changing this is a decision, not a commit
+- **Live-API audit:** permitted with <CREDENTIAL_SOURCE> | not permitted
+
 ## Conventions
 
 <!-- Add project-specific rules the style-enforcer should know about. -->

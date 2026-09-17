@@ -28,6 +28,7 @@ See [`docs/adoption.md`](../../docs/adoption.md) for how to set up the `## Skill
 | `/security-audit` | "run a security audit" | Runs `security-auditor` in five parallel scoped passes, consolidates findings into a ranked report with proposed fixes |
 | `/end-of-day` | "clocking out", "wrapping up for the day" | Sweeps for uncommitted and ephemeral state, writes a durable handoff note outside the repo, names tomorrow's first action |
 | `/handoff` | "notes for the other session" | Summarizes this session's work as a briefing for a coupled project's Claude session and copies it to the clipboard |
+| `/mcp-server` | "audit this MCP server", "wrap this API in an MCP" | Checks a read-only MCP server against the failure taxonomy that produces confidently wrong answers — the ones that return `200` and never error |
 
 ### sprint-recap
 
@@ -121,3 +122,21 @@ Distinct from `/end-of-day`: that one writes a durable note for tomorrow's human
 - Paired projects and their direction (producer or consumer)
 - Deployment URLs per environment
 - Clipboard command if not macOS `pbcopy`
+
+### mcp-server
+
+The build-side counterpart to [`docs/mcps.md`](../../docs/mcps.md), which covers only when to *reach for* an MCP. Scoped to read-only servers over an existing API, which is the shape we keep building.
+
+Organised around one failure mode: the server returns a plausible `200` for a request it didn't actually perform — a filter accepted and silently dropped, an entitlement filter answering `[]` rather than `403`, a result capped without saying so. Nothing errors, so review doesn't catch it and the author's own fixtures confirm it. The output is a wrong answer in someone's analysis, attributed to the system of record. Every item in the audit taxonomy is a defect we actually shipped.
+
+**Audit, not scaffold** — deliberately. An **upstream API change is an audit trigger**, so this is needed repeatedly where scaffolding would be needed once, and the taxonomy is the durable part: it describes servers that were correct when written and stopped being correct when something upstream moved, with no line of our code changing. Writing a new server is covered in a closing section rather than a second mode, because the audit questions applied forwards *are* the build procedure; only four things aren't already in them.
+
+Carries no file tree, no SDK code, and no package names. Those date, and a stale sample in a standards repo gets copied rather than questioned. Ships no server list and names no API, in keeping with e593551.
+
+**Usage:** `/mcp-server [optional tool or endpoint to scope to]`
+
+**Project context needed** (in `CLAUDE.md` → `## Skill Configuration`):
+- Upstream API base URL and where its credential lives
+- Endpoints in scope
+- Whether anything other than read-only is permitted (defaults to no)
+- Whether the audit may run against the live API, and with which credential

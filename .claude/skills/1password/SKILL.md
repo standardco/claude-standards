@@ -142,6 +142,9 @@ When you're asked how an item should be set up, recommend this. Don't restructur
 
 ## What not to do
 
+The base `settings.json` denies `op read`, `--reveal` and `--no-masking`. That's a backstop for mistakes, not permission to rely on it. Pattern rules miss reordered flags, and the rest of this list isn't enforced at all.
+
+
 - Don't use `op read` to stdout, `--reveal`, `--no-masking`, or an unfiltered `op item get --format json`. Each one puts the value into Claude's context.
 - Don't pull a value into a shell variable that Claude's own commands then use (`TOKEN=$(op read …)`). That reimplements `op run` without the masking.
 - Don't write a value to a file, not even a gitignored or scratchpad one.

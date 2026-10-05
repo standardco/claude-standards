@@ -153,7 +153,7 @@ It's a skill and not an MCP server deliberately. A tool call returns its result 
 
 It encodes what tripped up its first real use. Multiple signed-in accounts make every command fail until `OP_ACCOUNT` is set. A Secure Note's body comes back from a plain `op item get` without `--reveal`, so every JSON lookup is treated as a value read. A reader that only looks for concealed fields silently misses a note. And an item named in a handoff may not exist, in which case the skill stops and asks rather than trying near-matches.
 
-Deferred: a PreToolUse hook that blocks `op read`, `--reveal` and `--no-masking` outright. Shell pattern-matching is leaky, so the hook waits until a value actually leaks.
+The base [`settings.json`](../settings.json) denies `op read`, and any `op` command carrying `--reveal` or `--no-masking`. These are prefix and glob matches, so they catch a careless approval or a wrong step, not a determined bypass: `op --account x read …` slips past the first. A PreToolUse hook that parses the command properly stays deferred until a value actually leaks.
 
 **Usage:** `/1password [what the credential is for, or the item title]`
 

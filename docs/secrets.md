@@ -129,7 +129,10 @@ If the hook fires, do **not** use `--no-verify` to bypass it. Fix the leak, rota
 - Secrets Manager region: `<AWS_REGION>`
 - IAM role for local dev assume-role: `<LOCAL_DEV_ROLE_ARN>`
 
-## 1Password vault
+## 1Password
 
-- Vault name: `<ONEPASSWORD_VAULT_NAME>`
-- Team URL: `<ONEPASSWORD_TEAM_URL>`
+The account and vault are per project. Each project records them in its `CLAUDE.md` → `## Skill Configuration` → `### 1password`, not here.
+
+Claude uses 1Password through [`/1password`](../.claude/skills/1password/SKILL.md): it handles `op://` references and runs commands under `op run`, and never reads a value.
+
+**Store secrets as LOGIN or API_CREDENTIAL items, not Secure Notes.** Those keep the value in a concealed field. A Secure Note's body (`notesPlain`) isn't concealed: a plain `op item get <note> --format json` returns it without `--reveal`, so the secret leaks on what looks like a metadata lookup.

@@ -115,6 +115,11 @@ Key files:
 - **Known upstream gaps:** <e.g. no server-side filter on PATH, no total count — filtered locally>
 - **Reference implementation:** <PATH_TO_EXISTING_SERVER> (optional)
 
+### 1password
+- **Account:** `<TEAM>.1password.com` — passed as `OP_ACCOUNT`; required when more than one account is signed in
+- **Vault:** `<VAULT>`
+- **Reference file:** `.env.1password` — gitignored; `op://` references only, never values
+
 ## Conventions
 
 <!-- Add project-specific rules the style-enforcer should know about. -->

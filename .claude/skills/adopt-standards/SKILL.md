@@ -89,7 +89,7 @@ Why several of these are not obvious:
 
 #### 1b. Write the enforcement layer, then re-scan
 
-The floor drives a `.gitleaks.toml` at the project root. **This is the control** — it fails the commit. Two rules: one for files that are fine empty but not filled, one for files that must never appear at all.
+The floor drives a `.gitleaks.toml` at the project root. **This is the control** — it fails the commit. Three rules: one for files that are fine empty but not filled, one for the 1Password reference file, which is fine filled with `op://` references and nothing else, and one for files that must never appear at all.
 
 ```toml
 minVersion = "8.30.0"          # match the hook rev pinned above
@@ -104,12 +104,19 @@ path = '''(^|/)(\.env|\.env\.local|\.envrc|\.netrc|\.npmrc|\.pypirc|\.Renviron|l
 regex = '''(?m)^\s*(export\s+)?[^#\s][^\r\n]*=\s*\S+'''
 
 [[rules]]
+id = "op-reference-file-with-value"
+description = "A 1Password reference file holds a value that is not an op:// reference"
+path = '''(^|/)\.env\.1password$'''
+regex = '''(?m)^[ \t]*(?:export[ \t]+)?[A-Za-z_][A-Za-z0-9_]*[ \t]*=[ \t]*["']?((?:[^o"'\s#]|o[^p]|op[^:]|op:[^/]|op:/[^/])[^\r\n]*)'''
+secretGroup = 1
+
+[[rules]]
 id = "never-commit-path"
 description = "This path must never be committed"
 path = '''(^|/)(\.claude/settings\.local\.json|\.httr-oauth|\.RData|\.Rhistory|\.Rapp\.history|\.byebug_history|\.irb_history)$|\.(pem|key|p12|pfx)$'''
 ```
 
-Adjust both `path` expressions to the stacks you detected. `useDefault = true` keeps the built-in provider rules — this adds coverage, it does not replace it. The second rule has no `regex`; the path match alone is the finding. Requiring `\S+` after `=` means an empty-valued key doesn't fire, so a committed `.env.example` stays clean — and `.env.example` doesn't match `\.env$` in the first place.
+Adjust the first and last `path` expressions to the stacks you detected. Write the `op-reference-file-with-value` rule as-is in every project, including ones with no `.env.1password` yet: [`/1password`](../1password/SKILL.md) creates that file later, and the rule needs to be there first. Its regex is ugly because RE2 has no lookahead, so it spells out every way a value can fail to start with `op://`. Keep `secretGroup = 1`, because gitleaks silently drops a finding whose captured secret is a single character. `useDefault = true` keeps the built-in provider rules — this adds coverage, it does not replace it. The second rule has no `regex`; the path match alone is the finding. Requiring `\S+` after `=` means an empty-valued key doesn't fire, so a committed `.env.example` stays clean — and `.env.example` doesn't match `\.env$` in the first place.
 
 **Merge into an existing `.gitleaks.toml`, never overwrite it.** A project that already has one has rules and allowlists someone decided on.
 
@@ -342,7 +349,7 @@ git remote -v | grep -q 'claude-standards' && echo "source repo"
 - [ ] At least one skill appears and runs — invoking this skill is itself proof
 - [ ] `.claude/agents/` has all three reviewers
 - [ ] `pre-commit run --all-files` passes
-- [ ] `.gitleaks.toml` exists at the project root and carries both rules — if it's absent the project adopted before the enforcement layer existed, which is a `resync` away, not a re-adoption; say that rather than reporting a bare failure
+- [ ] `.gitleaks.toml` exists at the project root and carries all three rules — if it's absent the project adopted before the enforcement layer existed, which is a `resync` away, not a re-adoption; say that rather than reporting a bare failure
 - [ ] `gitleaks detect` clean on full history **using the project's own config** — confirm it resolved that file rather than falling back to the defaults, since a missing config produces a pass, not an error
 - [ ] The project's own `.gitignore` contains the credential floor from step 1a **plus every stack block whose marker is present** — `grep -c` against the file, **not** `git check-ignore`, which a machine-wide `~/.config/git/ignore` can satisfy on your machine and nobody else's. Re-run the stack detection here rather than trusting that adoption ran it; a project can gain a stack after it was adopted
 - [ ] `git ls-files` shows none of those paths already tracked — ignoring a tracked file changes nothing

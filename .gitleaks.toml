@@ -32,19 +32,36 @@ description = "A credential-bearing file is being committed with values in it"
 path = '''(^|/)(\.env|\.env\.local|\.envrc|\.netrc|\.npmrc|\.pypirc|\.Renviron|local_settings\.py|secrets\.toml)$'''
 regex = '''(?m)^\s*(export\s+)?[^#\s][^\r\n]*=\s*\S+'''
 
-# A 1Password reference file holding anything other than an op:// reference.
+# The 1Password reference file: op:// references, comments and blanks only.
 #
-# .env.1password is the one credential-adjacent file whose *filled* form is
-# legitimate: every line is a reference, not a value. So "has a value" can't be
-# the finding here. The finding is a value that doesn't start with op://.
-# RE2 has no lookahead, so the regex spells out every way a value can fail to
-# begin with that prefix. Empty values and comments don't fire. secretGroup
-# captures the whole value: a one-character capture is silently discarded.
+# .env.1password stays gitignored. These rules are the backstop for when it
+# gets committed anyway (git add -f, a project that un-ignores it), and they
+# can't reuse credential-file-with-value: a reference *is* a value, so "has a
+# value" would fire on every line. Instead they allow the shapes the file
+# should hold and flag everything else.
+#
+#   with-value  - any assignment, commented-out ones included, whose value
+#                 doesn't start with op://. RE2 has no lookahead, so the regex
+#                 spells out every way a value can fail to begin that way.
+#   stray-line  - any line that's neither a comment nor an assignment: a pasted
+#                 bare token, `KEY: value`, the body of a multi-line value.
+#
+# Only the op:// prefix is checked; text after it isn't inspected. Only the
+# exact filename is covered. An uppercase OP:// is flagged, failing closed.
+# secretGroup captures the whole value: on gitleaks 8.30.1 a finding whose
+# captured secret is one character long was not reported.
 [[rules]]
 id = "op-reference-file-with-value"
-description = "A 1Password reference file holds a value that is not an op:// reference"
+description = "A 1Password reference file assigns a value that is not an op:// reference"
 path = '''(^|/)\.env\.1password$'''
-regex = '''(?m)^[ \t]*(?:export[ \t]+)?[A-Za-z_][A-Za-z0-9_]*[ \t]*=[ \t]*["']?((?:[^o"'\s#]|o[^p]|op[^:]|op:[^/]|op:/[^/])[^\r\n]*)'''
+regex = '''(?m)^[ \t]*(?:#[ \t]*(?:export[ \t]+)?[A-Za-z_][A-Za-z0-9_.-]*[ \t]*|[^#\s=][^=\r\n]*)=[ \t]*((?:["'][ \t]*)?(?:[^o"'\s]|o[^p]|op[^:]|op:[^/]|op:/[^/])[^\r\n]*)'''
+secretGroup = 1
+
+[[rules]]
+id = "op-reference-file-stray-line"
+description = "A 1Password reference file has a line that is neither a comment nor an assignment"
+path = '''(^|/)\.env\.1password$'''
+regex = '''(?m)^[ \t]*([^#\s=][^=\n]*)$'''
 secretGroup = 1
 
 # Paths that must never be committed, whatever they contain.

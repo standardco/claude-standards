@@ -149,9 +149,9 @@ Carries no file tree, no SDK code, and no package names. Those date, and a stale
 
 The procedure behind the base rule that credentials are injected at runtime with the 1Password CLI. Its one rule is that **Claude handles references, never values**. It lists items and field labels, writes `op://` references to a gitignored `.env.1password`, and launches commands under `op run`, which passes values only to the child process and masks them in its output. Checks use lengths, counts and equality tests, never the value.
 
-It's a skill and not an MCP server deliberately. A tool call returns its result into the model's context, so a 1Password MCP would deliver exactly what the rule forbids. `allowed-tools` pre-approves only the metadata commands. `op item get`, `op read` and `op run` always prompt, because pre-approving `op item get` would also pre-approve `--reveal`.
+It's a skill and not an MCP server deliberately. A tool call returns its result into the model's context, so a 1Password MCP would deliver exactly what the rule forbids. `allowed-tools` pre-approves only the metadata commands. The skill doesn't pre-approve `op item get`, `op read` or `op run`, so those prompt unless a project allows them. Pre-approving `op item get` would also pre-approve `--reveal`. The skill tells the human never to answer "don't ask again" for them.
 
-It encodes what tripped up its first real use. Multiple signed-in accounts make every command fail until `OP_ACCOUNT` is set. A Secure Note's body comes back from a plain `op item get` without `--reveal`. A reader that only looks for concealed fields silently misses a note. And an item named in a handoff may not exist, in which case the skill stops and asks rather than trying near-matches.
+It encodes what tripped up its first real use. Multiple signed-in accounts make every command fail until `OP_ACCOUNT` is set. A Secure Note's body comes back from a plain `op item get` without `--reveal`, so every JSON lookup is treated as a value read. A reader that only looks for concealed fields silently misses a note. And an item named in a handoff may not exist, in which case the skill stops and asks rather than trying near-matches.
 
 Deferred: a PreToolUse hook that blocks `op read`, `--reveal` and `--no-masking` outright. Shell pattern-matching is leaky, so the hook waits until a value actually leaks.
 

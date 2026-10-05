@@ -135,4 +135,4 @@ The account and vault are per project. Each project records them in its `CLAUDE.
 
 Claude uses 1Password through [`/1password`](../.claude/skills/1password/SKILL.md): it handles `op://` references and runs commands under `op run`, and never reads a value.
 
-**Store secrets as LOGIN or API_CREDENTIAL items, not Secure Notes.** Those keep the value in a concealed field. A Secure Note's body (`notesPlain`) isn't concealed: a plain `op item get <note> --format json` returns it without `--reveal`, so the secret leaks on what looks like a metadata lookup.
+**Treat `op item get --format json` as a value read, not a metadata lookup.** A Secure Note's body (`notesPlain`) has been seen returned in plain text without `--reveal`. Whether concealed fields behave the same hasn't been tested, so assume they do and filter every lookup through `jq`, as the skill does. Prefer LOGIN or API_CREDENTIAL items to Secure Notes, because a typed field references cleanly. Don't rely on the item type to protect the value.

@@ -51,7 +51,7 @@ Secrets are pulled from AWS Secrets Manager via AWS SSM Parameter Store or Secre
 - `.env` → gitignored, local values
 - `.env.example` → committed if the project keeps one: keys with empty or dummy values, no real credentials
 - `.env.local` → gitignored, anything you don't want shared
-- `.env.1password` → gitignored, references to 1Password items (not the secrets themselves)
+- `.env.1password` → gitignored, references to 1Password items (not the secrets themselves). If it's committed anyway, `.gitleaks.toml` fails the commit when an assignment's value, commented-out or not, doesn't start with `op://`, or when a line is neither a comment nor an assignment. Only the prefix is checked, and only that filename is covered.
 
 Ignoring a file we permit to be non-secret looks redundant, and isn't. The permission is what guarantees the file exists in the project, and a file that exists is a file someone eventually adds one connection string to. The ignore costs nothing; the alternative depends on that never happening.
 

@@ -65,7 +65,7 @@ op item get "<item>" --account <acct> --vault "<vault>" --format json \
 
 `op item get` isn't pre-approved, so each call goes through a permission prompt. Pre-approving it would also pre-approve `--reveal` and the unfiltered form.
 
-**Field placement differs by category.** A LOGIN keeps the secret in `password`, an API_CREDENTIAL keeps it in `credential`, and a SECURE_NOTE keeps it in `notesPlain`. If you only look for CONCEALED fields, a note comes back empty and you get no error. List the labels and types, then pick.
+**Field placement differs by category.** A PASSWORD or LOGIN item keeps the secret in `password`, an API_CREDENTIAL keeps it in `credential`, and a SECURE_NOTE keeps it in `notesPlain`. Other categories (DATABASE, SERVER and so on) have their own labels. If you only look for CONCEALED fields, a note comes back empty and you get no error. List the labels and types, then pick.
 
 You can't tell from metadata whether a field *has* a value. Check that at step 6, inside `op run`.
 
@@ -136,7 +136,8 @@ If an item named in a handoff, a ticket or Skill Configuration isn't there, **re
 When you're asked how an item should be set up, recommend this. Don't restructure a vault yourself.
 
 - **One secret per item.**
-- **LOGIN (`password`) or API_CREDENTIAL (`credential`)**, not a Secure Note body. A typed field references cleanly and stays out of the human-readable output without `--reveal`. A note body needs `notesPlain` and breaks as soon as someone adds a line of explanation.
+- **Password (`password`) or API Credential (`credential`) for a single token.** Use a Login only when there's a real username to go with it, since its username and website fields sit empty for a bare token. A Password item is one concealed field plus a notes area for rotation dates and owners. The notes area is `notesPlain`, the same plain-text field as a Secure Note body, so it holds metadata only: never a secret, a recovery code or an old value.
+- **Never a Secure Note body.** A note body needs `notesPlain`, isn't concealed in the app or in `op`'s normal output, and breaks every consumer as soon as someone adds a line of explanation.
 - **Environment in the title:** `<Project> <thing> - staging` / `- production`. Prod and staging tokens look identical.
 - **Only letters, digits, spaces, `-`, `_` and `.` in titles**, so `op://` references can use names. Brackets are the usual offender, and so is `(staging)`.
 

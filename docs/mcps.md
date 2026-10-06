@@ -11,6 +11,7 @@ Server definitions are project-specific — which database, which host, which cr
 - **Default to MCP** for any tool used more than once by two or more devs.
 - If the vendor ships an official MCP, use it. Don't maintain a wrapper.
 - Skip MCP only when: it doesn't exist yet, it's a one-shot dev inspection, or the API is public with no auth.
+- **Secret stores are never an MCP, official or not.** A tool result lands in the model's context, which is where the value must not go. Use [`/1password`](../.claude/skills/1password/SKILL.md), which hands values only to a child process.
 - Reaching for raw HTTP twice against the same service is a missing MCP. Add one.
 - Server definitions live in `./.mcp.json` at the project root — team-shared and version-controlled, not in `.claude/`.
 - One owner per `.mcp.json`. New entries need a PR.

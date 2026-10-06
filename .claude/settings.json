@@ -10,7 +10,10 @@
     ],
     "deny": [
       "Bash(curl:*)",
-      "Bash(wget:*)"
+      "Bash(wget:*)",
+      "Bash(op read:*)",
+      "Bash(op * --reveal*)",
+      "Bash(op * --no-masking*)"
     ]
   },
   "env": {

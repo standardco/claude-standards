@@ -29,6 +29,7 @@ See [`docs/adoption.md`](../../docs/adoption.md) for how to set up the `## Skill
 | `/end-of-day` | "clocking out", "wrapping up for the day" | Sweeps for uncommitted and ephemeral state, writes a durable handoff note outside the repo, names tomorrow's first action |
 | `/handoff` | "notes for the other session" | Summarizes this session's work as a briefing for a coupled project's Claude session and copies it to the clipboard |
 | `/build-mcp-server` | "wrap this API in an MCP", "audit this MCP server" | Builds a read-only MCP server over an existing project's API, and audits one against the failure taxonomy that produces confidently wrong answers |
+| `/1password` | "use the token from 1Password", a task that needs a credential | Finds items by metadata, writes `op://` references, runs commands under `op run`, so secret values never enter Claude's context |
 
 ### sprint-recap
 
@@ -143,3 +144,20 @@ Carries no file tree, no SDK code, and no package names. Those date, and a stale
 - Endpoints in scope
 - Whether anything other than read-only is permitted (defaults to no)
 - Whether it may be run against the live API, and with which credential
+
+### 1password
+
+The procedure behind the base rule that credentials are injected at runtime with the 1Password CLI. Its one rule is that **Claude handles references, never values**. It lists items and field labels, writes `op://` references to a gitignored `.env.1password`, and launches commands under `op run`, which passes values only to the child process and masks them in its output. Checks use lengths, counts and equality tests, never the value.
+
+It's a skill and not an MCP server deliberately. A tool call returns its result into the model's context, so a 1Password MCP would deliver exactly what the rule forbids. `allowed-tools` pre-approves only the metadata commands. The skill doesn't pre-approve `op item get`, `op read` or `op run`, so those prompt unless a project allows them. Pre-approving `op item get` would also pre-approve `--reveal`. The skill tells the human never to answer "don't ask again" for them.
+
+It encodes what tripped up its first real use. Multiple signed-in accounts make every command fail until `OP_ACCOUNT` is set. A Secure Note's body comes back from a plain `op item get` without `--reveal`, so every JSON lookup is treated as a value read. A reader that only looks for concealed fields silently misses a note. And an item named in a handoff may not exist, in which case the skill stops and asks rather than trying near-matches.
+
+The base [`settings.json`](../settings.json) denies `op read`, and any `op` command carrying `--reveal` or `--no-masking`. These are prefix and glob matches, so they catch a careless approval or a wrong step, not a determined bypass: `op --account x read …` slips past the first. A PreToolUse hook that parses the command properly stays deferred until a value actually leaks.
+
+**Usage:** `/1password [what the credential is for, or the item title]`
+
+**Project context needed** (in `CLAUDE.md` → `## Skill Configuration`):
+- 1Password account URL (set as `OP_ACCOUNT`; required when more than one account is signed in)
+- Vault
+- Reference file (defaults to `.env.1password`)

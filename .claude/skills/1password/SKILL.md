@@ -136,7 +136,7 @@ If an item named in a handoff, a ticket or Skill Configuration isn't there, **re
 When you're asked how an item should be set up, recommend this. Don't restructure a vault yourself.
 
 - **One secret per item.**
-- **Password (`password`) or API Credential (`credential`) for a single token. Login only when there's a real username to go with it.** A Password item is one concealed field plus a notes area, so rotation dates and owners have somewhere to go that isn't the value. A Login works the same way, but its username and website fields sit empty for a bare token.
+- **Password (`password`) or API Credential (`credential`) for a single token.** Use a Login only when there's a real username to go with it, since its username and website fields sit empty for a bare token. A Password item is one concealed field plus a notes area for rotation dates and owners. The notes area is `notesPlain`, the same plain-text field as a Secure Note body, so it holds metadata only: never a secret, a recovery code or an old value.
 - **Never a Secure Note body.** A note body needs `notesPlain`, isn't concealed in the app or in `op`'s normal output, and breaks every consumer as soon as someone adds a line of explanation.
 - **Environment in the title:** `<Project> <thing> - staging` / `- production`. Prod and staging tokens look identical.
 - **Only letters, digits, spaces, `-`, `_` and `.` in titles**, so `op://` references can use names. Brackets are the usual offender, and so is `(staging)`.

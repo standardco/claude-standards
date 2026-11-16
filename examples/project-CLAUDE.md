@@ -124,6 +124,7 @@ Key files:
 
 <!-- Add project-specific rules the style-enforcer should know about. -->
 
+- Design system: <PATH to tokens, component library or DESIGN.md, or "none — the base design baseline applies">
 - <Convention 1>
 - <Convention 2>
 

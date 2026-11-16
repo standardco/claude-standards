@@ -100,6 +100,25 @@ None of this discourages optimisation. Measure, notice, propose. The check is on
 
 ---
 
+## Design baseline
+
+Applies to any UI Claude builds or changes — screens, dashboards, forms, reports, HTML email templates, artifacts. A project's own design system, component library or `DESIGN.md` overrides everything here. Match what exists before inventing. When changing existing UI, apply this to what you add, not as grounds for restyling what's already there.
+
+- **Tokens.** Where the project has tokens for colour, spacing and type, use them, and add one rather than hardcode a value none covers.
+- **Contrast.** Body text at least 4.5:1, large text at least 3:1. On coloured backgrounds, tint secondary text from that colour rather than using mid-grey; the tint must still pass.
+- **States.** Interactive elements show hover and visible focus, a disabled state where they can be disabled, and a loading state where they start async work. Data views have an empty state where the data can be empty, and loading and error states where it's actually fetched. Never simulate latency to show one off. Errors say what went wrong and how to recover.
+- **Spacing.** Tight within a group, generous between groups, more space above a heading than below it.
+- **Tables.** Quantities right-aligned in tabular numerals. Text, IDs, codes and years left-aligned. Nothing truncated without a way to see it in full.
+- **Line length.** Body copy at most about 75 characters per line on wide screens. Check at phone width with realistic-length synthetic content.
+- **Labels.** Buttons name their action ("Save changes", not "Submit" or "OK").
+- **Motion.** Only to explain a change, and respecting `prefers-reduced-motion`.
+- **Icons.** One library at one stroke weight. No emoji as icons.
+- **Generic AI defaults.** Avoid these unless the project's design system or the brief asks for them: purple-to-blue gradients, gradient text, cards nested in cards, grids of identical icon-heading-text cards as page structure, small labels above every heading, thick coloured left borders on cards, decorative glass and blur.
+
+See [`docs/design.md`](docs/design.md) for the reasoning and for when a project wants more than a baseline.
+
+---
+
 ## Formatting rules
 
 - When composing emails or messages for me to copy-paste, use plain text without markdown blockquote formatting. Use `pbcopy` to place the text directly into the clipboard instead of displaying it in the terminal.
